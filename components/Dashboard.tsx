@@ -85,7 +85,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
   return (
     <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500 pb-24 lg:pb-0">
       {/* SELETOR DE DATA ESTILO KANRI */}
-      <section className="bg-[#1c1c1e] -mx-4 lg:-mx-8 p-4 lg:p-6 shadow-inner">
+      {/* SELETOR DE DATA ESTILO KANRI */}
+      <section className="bg-[#1c1c1e] dark:bg-black -mx-4 lg:-mx-8 p-4 lg:p-6 shadow-inner transition-colors duration-300">
         <div className="max-w-7xl mx-auto space-y-4">
           <div className="flex items-center justify-between overflow-x-auto gap-3 no-scrollbar pb-1">
             {weekDays.map((date, i) => {
@@ -96,7 +97,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
                   onClick={() => setSelectedDate(date)}
                   className={`flex flex-col items-center justify-center min-w-[70px] h-20 rounded-xl transition-all ${active
                     ? 'bg-[#3a4b5a] shadow-lg scale-105'
-                    : 'bg-[#2c2c2e] hover:bg-zinc-800'
+                    : 'bg-[#2c2c2e] dark:bg-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-800'
                     }`}
                 >
                   <span className={`text-xl font-bold ${active ? 'text-white' : 'text-[#69e0b1]/80'}`}>
@@ -115,7 +116,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
               classesForDay.map((cls) => (
                 <div
                   key={cls.id}
-                  className="min-w-[165px] bg-[#2c2c2e] border border-white/5 p-4 rounded-2xl flex flex-col gap-2.5 group hover:border-[#69e0b1]/30 transition-all cursor-pointer shadow-lg"
+                  className="min-w-[165px] bg-[#2c2c2e] dark:bg-zinc-900 border border-white/5 p-4 rounded-2xl flex flex-col gap-2.5 group hover:border-[#69e0b1]/30 transition-all cursor-pointer shadow-lg"
                 >
                   <div className="flex items-center gap-2 text-zinc-400">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="opacity-70"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
@@ -142,7 +143,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
 
       {/* STATS GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <div className="bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-zinc-950 p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-all">
           <div className="flex justify-between items-start mb-3 lg:mb-4">
             <div className="p-1.5 lg:p-2 bg-zinc-950 text-white rounded-lg">
               <Icons.Users />
@@ -151,40 +152,40 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
               +12%
             </span>
           </div>
-          <h3 className="text-zinc-500 text-[10px] lg:text-sm font-bold uppercase tracking-wider">Total Alunos</h3>
-          <p className="text-lg lg:text-2xl font-black text-zinc-950 mt-1">{loading ? '...' : students.length}</p>
+          <h3 className="text-zinc-500 dark:text-zinc-400 text-[10px] lg:text-sm font-bold uppercase tracking-wider">Total Alunos</h3>
+          <p className="text-lg lg:text-2xl font-black text-zinc-950 dark:text-white mt-1">{loading ? '...' : students.length}</p>
         </div>
 
-        <div className="bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-zinc-950 p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-all">
           <div className="flex justify-between items-start mb-3 lg:mb-4">
-            <div className="p-1.5 lg:p-2 bg-zinc-100 text-zinc-900 rounded-lg">
+            <div className="p-1.5 lg:p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-lg">
               <Icons.Calendar />
             </div>
           </div>
-          <h3 className="text-zinc-500 text-[10px] lg:text-sm font-bold uppercase tracking-wider">Aulas Hoje</h3>
-          <p className="text-lg lg:text-2xl font-black text-zinc-950 mt-1">{loading ? '...' : classes.filter(c => c.days.includes(new Date().getDay())).length}</p>
+          <h3 className="text-zinc-500 dark:text-zinc-400 text-[10px] lg:text-sm font-bold uppercase tracking-wider">Aulas Hoje</h3>
+          <p className="text-lg lg:text-2xl font-black text-zinc-950 dark:text-white mt-1">{loading ? '...' : classes.filter(c => c.days.includes(new Date().getDay())).length}</p>
         </div>
 
-        <div className="bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 hover:shadow-md transition-shadow">
+        <div className="bg-white dark:bg-zinc-950 p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-all">
           <div className="flex justify-between items-start mb-3 lg:mb-4">
             <div className="p-1.5 lg:p-2 bg-zinc-950 text-white rounded-lg">
               <Icons.Bot />
             </div>
-            <span className="hidden sm:inline-block text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-50 text-emerald-600">
+            <span className="hidden sm:inline-block text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
               Agora
             </span>
           </div>
-          <h3 className="text-zinc-500 text-[10px] lg:text-sm font-bold uppercase tracking-wider">No Tatame</h3>
-          <p className="text-lg lg:text-2xl font-black text-zinc-950 mt-1">32</p>
+          <h3 className="text-zinc-500 dark:text-zinc-400 text-[10px] lg:text-sm font-bold uppercase tracking-wider">No Tatame</h3>
+          <p className="text-lg lg:text-2xl font-black text-zinc-950 dark:text-white mt-1">32</p>
         </div>
 
         {/* CARD DE GRADUAÇÃO - REDIRECIONA PARA ALUNOS */}
         <button
           onClick={onGraduationClick}
-          className="bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 hover:shadow-md transition-all text-left group active:scale-95 hover:border-amber-400"
+          className="bg-white dark:bg-zinc-950 p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-all text-left group active:scale-95 hover:border-amber-400"
         >
           <div className="flex justify-between items-start mb-3 lg:mb-4">
-            <div className="p-1.5 lg:p-2 rounded-lg bg-amber-100 text-amber-600">
+            <div className="p-1.5 lg:p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
               <Icons.Award />
             </div>
             {eligibleCount > 0 && (
@@ -193,8 +194,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
               </span>
             )}
           </div>
-          <h3 className="text-zinc-500 text-[10px] lg:text-sm font-bold uppercase tracking-wider">Graduação</h3>
-          <p className="text-lg lg:text-2xl font-black text-zinc-950 mt-1 flex items-center justify-between">
+          <h3 className="text-zinc-500 dark:text-zinc-400 text-[10px] lg:text-sm font-bold uppercase tracking-wider">Graduação</h3>
+          <p className="text-lg lg:text-2xl font-black text-zinc-950 dark:text-white mt-1 flex items-center justify-between">
             {eligibleCount} Elegíveis
             <svg className="text-zinc-300 group-hover:text-amber-500 transition-colors" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="9 18 15 12 9 6" /></svg>
           </p>
@@ -202,8 +203,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-        <div className="lg:col-span-2 bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100">
-          <h3 className="text-base lg:text-lg font-bold text-zinc-950 mb-6 uppercase tracking-tighter">Engajamento Semanal</h3>
+        <div className="lg:col-span-2 bg-white dark:bg-zinc-950 p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 transition-colors">
+          <h3 className="text-base lg:text-lg font-bold text-zinc-950 dark:text-white mb-6 uppercase tracking-tighter">Engajamento Semanal</h3>
           <div className="h-48 lg:h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={attendanceData}>
@@ -213,7 +214,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
                     <stop offset="95%" stopColor="#09090b" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" className="dark:opacity-10" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
                 <YAxis hide axisLine={false} tickLine={false} />
                 <Tooltip
@@ -233,24 +234,24 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
           </div>
         </div>
 
-        <div className="bg-white p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100">
-          <h3 className="text-base lg:text-lg font-bold text-zinc-950 mb-6 uppercase tracking-tighter">Últimas Presenças</h3>
+        <div className="bg-white dark:bg-zinc-950 p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 transition-colors">
+          <h3 className="text-base lg:text-lg font-bold text-zinc-950 dark:text-white mb-6 uppercase tracking-tighter">Últimas Presenças</h3>
           <div className="space-y-4 lg:space-y-6">
             {students.slice(0, 5).map((student) => (
               <div key={student.id} className="flex items-center gap-3">
                 <div className="relative flex-shrink-0">
-                  <img src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random`} alt={student.name} className="w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-white shadow-sm object-cover" />
-                  <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${student.active ? 'bg-zinc-950' : 'bg-zinc-300'}`}></div>
+                  <img src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random`} alt={student.name} className="w-8 h-8 lg:w-10 lg:h-10 rounded-full border-2 border-white dark:border-zinc-800 shadow-sm object-cover" />
+                  <div className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-zinc-800 ${student.active ? 'bg-zinc-950 dark:bg-emerald-500' : 'bg-zinc-300'}`}></div>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs lg:text-sm font-bold text-zinc-950 truncate">{student.name}</p>
-                  <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-tighter">{student.belt}</p>
+                  <p className="text-xs lg:text-sm font-bold text-zinc-950 dark:text-white truncate">{student.name}</p>
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase font-bold tracking-tighter">{student.belt}</p>
                 </div>
                 <span className="text-[10px] text-zinc-400 font-bold whitespace-nowrap">{student.lastAttendance ? new Date(student.lastAttendance).toLocaleDateString('pt-BR') : '-'}</span>
               </div>
             ))}
           </div>
-          <button className="w-full mt-6 py-2.5 lg:py-3 text-xs lg:text-sm font-bold text-zinc-950 bg-zinc-100 rounded-xl hover:bg-zinc-200 transition-colors active:scale-95">
+          <button className="w-full mt-6 py-2.5 lg:py-3 text-xs lg:text-sm font-bold text-zinc-950 dark:text-white bg-zinc-100 dark:bg-zinc-800 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors active:scale-95">
             Ver Todos os Treinos
           </button>
         </div>

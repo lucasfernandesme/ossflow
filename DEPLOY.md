@@ -25,11 +25,10 @@ No painel da Vercel (Settings -> Environment Variables), certifique-se de ter ad
 
 Se você adicionou agora, precisa ir em **Deployments** -> **Redeploy** para elas fazerem efeito.
 
-### 3. Verificar o Resultado
-Acesse a URL do projeto. Se ainda estiver branco:
-1. Abra o Console do Desenvolvedor (F12 ou Botão Direito -> Inspecionar -> Console).
-2. Veja se há erros em vermelho.
-3. Se houver erro de "process is not defined", as variáveis não foram carregadas corretamente.
+- **Tela branca:**
+  1. **Nova Tela de Erro:** Eu adicionei um script que captura o erro e mostra numa caixa vermelha na tela. **Redeploy** para ver qual é o erro exato.
+  2. **Erro Comum:** "Supabase environment variables are missing". Isso significa que faltam as variáveis no passo 2 acima.
+  3. **Console (F12):** Se a caixa vermelha não aparecer, verifique o console.
 
 ---
 
