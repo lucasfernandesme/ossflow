@@ -62,8 +62,14 @@ export const StudentService = {
         if (updates.totalClassesAttended !== undefined) payload.total_classes_attended = updates.totalClassesAttended;
         if (updates.lastAttendance !== undefined) payload.last_attendance = updates.lastAttendance;
         if (updates.paymentStatus !== undefined) payload.payment_status = updates.paymentStatus;
-        if (updates.startDate !== undefined) payload.start_date = updates.startDate;
-        if (updates.lastGraduationDate !== undefined) payload.last_graduation_date = updates.lastGraduationDate;
+        if (updates.startDate !== undefined) payload.start_date = updates.startDate || null;
+        if (updates.lastGraduationDate !== undefined) payload.last_graduation_date = updates.lastGraduationDate || null;
+
+        // Handle other potentially empty string date/text fields
+        if (payload.birthday === '') payload.birthday = null;
+        if (payload.email === '') payload.email = null;
+        if (payload.phone === '') payload.phone = null;
+        if (payload.cpf === '') payload.cpf = null;
 
         // Remove camelCase keys
         delete payload.totalClassesAttended;
@@ -83,8 +89,11 @@ export const StudentService = {
         return data;
     },
 
-    async registerBatchAttendance(studentIds: string[]) {
+    async registerBatchAttendance(studentIds: string[], classId: string, date: string) {
         if (!studentIds.length) return;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Usuário não autenticado");
 
         // Fetch current counts
         const { data: students, error: fetchError } = await supabase
@@ -94,15 +103,28 @@ export const StudentService = {
 
         if (fetchError) throw fetchError;
 
-        // Execute updates sequentially to avoid issues with bulk upsert RLS/constraints
-        // In a real production app with many students, we might want a different approach (RPC or Edge Function)
+        // 1. Insert attendance logs
+        const logs = studentIds.map(sid => ({
+            user_id: user.id,
+            student_id: sid,
+            class_id: classId,
+            attendance_date: date
+        }));
+
+        const { error: logError } = await supabase
+            .from('attendance_logs')
+            .upsert(logs, { onConflict: 'student_id,class_id,attendance_date' });
+
+        if (logError) throw logError;
+
+        // 2. Update student counts
         const errors = [];
         for (const s of students) {
             const { error } = await supabase
                 .from('students')
                 .update({
                     total_classes_attended: (s.total_classes_attended || 0) + 1,
-                    last_attendance: new Date().toISOString().split('T')[0]
+                    last_attendance: date
                 })
                 .eq('id', s.id);
 
@@ -115,5 +137,15 @@ export const StudentService = {
         if (errors.length > 0) {
             throw new Error(`Falha ao atualizar ${errors.length} alunos.`);
         }
+    },
+
+    async getAttendanceLogs(date: string) {
+        const { data, error } = await supabase
+            .from('attendance_logs')
+            .select('class_id, student_id')
+            .eq('attendance_date', date);
+
+        if (error) throw error;
+        return data as { class_id: string; student_id: string }[];
     }
 };

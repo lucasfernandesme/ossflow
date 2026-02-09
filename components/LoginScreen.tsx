@@ -96,7 +96,7 @@ export const LoginScreen = () => {
 
                 <button
                     onClick={() => signInWithGoogle()}
-                    className="mt-6 w-full bg-zinc-950 hover:bg-black text-white font-semibold py-3.5 rounded-xl border border-zinc-800 transition-all flex items-center justify-center gap-3 hover:border-zinc-700"
+                    className="mt-6 w-full bg-white hover:bg-zinc-200 text-zinc-950 font-bold py-3.5 rounded-xl border border-zinc-200 transition-all flex items-center justify-center gap-3 shadow-lg active:scale-[0.98]"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -108,16 +108,12 @@ export const LoginScreen = () => {
                 </button>
             </div>
 
-            <div className="mt-8 text-center border-t border-zinc-800 pt-6">
-                <p className="text-zinc-400 text-sm">
-                    {isSignUp ? 'Já tem uma conta?' : 'Não tem uma conta?'}
-                    <button
-                        onClick={() => setIsSignUp(!isSignUp)}
-                        className="ml-2 text-indigo-400 hover:text-indigo-300 font-bold hover:underline transition-all focus:outline-none"
-                    >
-                        {isSignUp ? 'Fazer Login' : 'Criar Conta'}
-                    </button>
-                </p>
+            <div className="mt-8">
+                <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-zinc-800"></div>
+                    </div>
+                </div>
             </div>
         </AuthLayout>
     );

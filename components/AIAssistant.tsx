@@ -31,7 +31,7 @@ const AIAssistant: React.FC = () => {
     setIsLoading(true);
 
     const aiResponse = await geminiService.getSenseiAdvice(userMessage);
-    
+
     setMessages(prev => [...prev, { role: 'ai', content: aiResponse || "Opa, perdi o fôlego aqui no tatame. Pode repetir?" }]);
     setIsLoading(false);
   };
@@ -53,17 +53,16 @@ const AIAssistant: React.FC = () => {
         </div>
       </div>
 
-      <div 
+      <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 lg:space-y-6 bg-zinc-50/30"
       >
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] lg:max-w-[80%] p-3 lg:p-4 rounded-2xl shadow-sm text-sm lg:text-base leading-relaxed ${
-              msg.role === 'user' 
-                ? 'bg-zinc-950 text-white font-bold rounded-tr-none' 
-                : 'bg-white text-zinc-700 border border-zinc-100 rounded-tl-none'
-            }`}>
+            <div className={`max-w-[85%] lg:max-w-[80%] p-3 lg:p-4 rounded-2xl shadow-sm text-sm lg:text-base leading-relaxed ${msg.role === 'user'
+              ? 'bg-zinc-950 text-white font-bold rounded-tr-none'
+              : 'bg-white text-zinc-700 border border-zinc-100 rounded-tl-none'
+              }`}>
               {msg.content}
             </div>
           </div>
@@ -89,13 +88,13 @@ const AIAssistant: React.FC = () => {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           />
-          <button 
+          <button
             onClick={handleSend}
             disabled={isLoading || !input.trim()}
-            className="bg-zinc-950 text-white w-10 h-10 lg:w-auto lg:px-6 rounded-xl font-bold hover:bg-black transition-all shadow-lg shadow-zinc-950/20 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
+            className="bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 w-10 h-10 lg:w-auto lg:px-6 rounded-xl font-bold hover:bg-black dark:hover:bg-zinc-200 transition-all shadow-lg shadow-zinc-950/20 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
           >
             <span className="hidden lg:inline">Enviar</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-white dark:text-zinc-950" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
           </button>
         </div>
       </div>

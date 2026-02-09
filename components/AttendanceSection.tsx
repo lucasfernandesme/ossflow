@@ -42,25 +42,33 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const loadData = async () => {
+  const loadData = async (date: string = selectedDate) => {
     try {
       setLoading(true);
-      const [classesData, studentsData] = await Promise.all([
+      const [classesData, studentsData, logsData] = await Promise.all([
         ClassService.getAll(),
-        StudentService.getAll()
+        StudentService.getAll(),
+        StudentService.getAttendanceLogs(date)
       ]);
       setClasses(classesData);
       setStudents(studentsData);
+
+      // Identificar classes que já tiveram chamada hoje
+      const completed = new Set<string>();
+      logsData.forEach(log => completed.add(log.class_id));
+      setCompletedClasses(completed);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadData(selectedDate);
+  }, [selectedDate]);
 
   const [selectedClass, setSelectedClass] = useState<TrainingClass | null>(null);
   const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
@@ -71,8 +79,6 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
 
   // Rastreia IDs de classes que já tiveram chamada feita hoje
   const [completedClasses, setCompletedClasses] = useState<Set<string>>(new Set());
-
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   const selectedDayOfWeek = useMemo(() => {
     const d = new Date(selectedDate + 'T12:00:00');
@@ -112,8 +118,15 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
   const handleFinish = async () => {
     if (presentIds.size === 0 || !selectedClass) return;
 
+    // Verificar se a data é futura
+    const todayStr = new Date().toISOString().split('T')[0];
+    if (selectedDate > todayStr) {
+      alert('🚫 Não é possível realizar chamadas para datas futuras!');
+      return;
+    }
+
     try {
-      await StudentService.registerBatchAttendance(Array.from(presentIds));
+      await StudentService.registerBatchAttendance(Array.from(presentIds), selectedClass.id, selectedDate);
 
       setCompletedClasses(prev => new Set(prev).add(selectedClass.id));
       setFinished(true);
@@ -508,7 +521,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
         <button
           onClick={handleFinish}
           disabled={presentIds.size === 0}
-          className="w-full bg-zinc-950 text-white py-5 rounded-3xl font-black uppercase tracking-[0.25em] text-xs shadow-2xl hover:bg-black transition-all active:scale-95 disabled:opacity-20 disabled:active:scale-100 disabled:cursor-not-allowed group"
+          className="w-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-5 rounded-3xl font-black uppercase tracking-[0.25em] text-xs shadow-2xl hover:bg-black dark:hover:bg-zinc-200 transition-all active:scale-95 disabled:opacity-20 disabled:active:scale-100 disabled:cursor-not-allowed group"
         >
           Finalizar Chamada
           <span className="block text-[8px] font-bold opacity-50 mt-1 tracking-widest">{presentIds.size} Alunos Selecionados</span>

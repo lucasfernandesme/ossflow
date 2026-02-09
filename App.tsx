@@ -15,8 +15,11 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { BeltProvider } from './contexts/BeltContext';
 import { LoginScreen } from './components/LoginScreen';
 
+import UserProfile from './components/UserProfile';
+
 const AuthenticatedApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showProfile, setShowProfile] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | 'new' | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [studentFilter, setStudentFilter] = useState<'all' | 'graduation'>('all');
@@ -130,15 +133,26 @@ const AuthenticatedApp: React.FC = () => {
           <span className="font-black italic tracking-tighter text-xl hidden sm:inline-block bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">Ossflow</span>
         </div>
 
-        {/* Right: Logout */}
+        {/* Right: Profile Button */}
         <button
-          onClick={signOut}
-          className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider hover:text-red-500 transition-colors"
+          onClick={() => setShowProfile(true)}
+          className="relative group"
         >
-          <span className="hidden sm:inline">Sair</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+          <div className="w-10 h-10 rounded-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 flex items-center justify-center font-black uppercase text-sm shadow-lg border-2 border-transparent group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-all active:scale-95 overflow-hidden">
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span>
+                {user?.user_metadata?.full_name
+                  ? user.user_metadata.full_name.charAt(0)
+                  : user?.email?.charAt(0).toUpperCase() || 'U'}
+              </span>
+            )}
+          </div>
         </button>
       </header>
+
+      {showProfile && <UserProfile onClose={() => setShowProfile(false)} />}
 
       <div className="flex flex-1 pt-16">
         <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} className="hidden lg:flex" />

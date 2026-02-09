@@ -44,15 +44,18 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
     fetchData();
   }, []);
 
-  // Gera os dias da semana ao redor da data selecionada
+  // Gera os dias da semana (Segunda a Domingo)
   const weekDays = useMemo(() => {
     const days = [];
-    const start = new Date(selectedDate);
-    start.setDate(selectedDate.getDate() - 3); // Mostra 3 dias antes
+    const current = new Date(selectedDate);
+    const day = current.getDay();
+    const diff = current.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+
+    const monday = new Date(current.setDate(diff));
 
     for (let i = 0; i < 7; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
       days.push(d);
     }
     return days;
@@ -77,6 +80,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
     }).length;
   }, [students]);
 
+  const studentsPresentToday = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return students.filter(s => s.lastAttendance === today).length;
+  }, [students]);
+
   const isSameDay = (d1: Date, d2: Date) =>
     d1.getDate() === d2.getDate() &&
     d1.getMonth() === d2.getMonth() &&
@@ -88,22 +96,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
       {/* SELETOR DE DATA ESTILO KANRI */}
       <section className="bg-[#1c1c1e] dark:bg-black -mx-4 lg:-mx-8 p-4 lg:p-6 shadow-inner transition-colors duration-300">
         <div className="max-w-7xl mx-auto space-y-4">
-          <div className="flex items-center justify-between overflow-x-auto gap-3 no-scrollbar pb-1">
+          <div className="flex items-center justify-between gap-2 overflow-x-hidden">
             {weekDays.map((date, i) => {
               const active = isSameDay(date, selectedDate);
               return (
                 <button
                   key={i}
                   onClick={() => setSelectedDate(date)}
-                  className={`flex flex-col items-center justify-center min-w-[70px] h-20 rounded-xl transition-all ${active
+                  className={`flex flex-col items-center justify-center flex-1 h-20 rounded-xl transition-all ${active
                     ? 'bg-[#3a4b5a] shadow-lg scale-105'
                     : 'bg-[#2c2c2e] dark:bg-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-800'
                     }`}
                 >
-                  <span className={`text-xl font-bold ${active ? 'text-white' : 'text-[#69e0b1]/80'}`}>
+                  <span className={`text-sm sm:text-lg lg:text-xl font-bold ${active ? 'text-white' : 'text-[#69e0b1]/80'}`}>
                     {date.getDate()}
                   </span>
-                  <span className={`text-[10px] font-black uppercase tracking-widest mt-1 ${active ? 'text-white' : 'text-[#69e0b1]/60'}`}>
+                  <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mt-1 ${active ? 'text-white' : 'text-[#69e0b1]/60'}`}>
                     {WEEKDAYS_LABELS[date.getDay()]}
                   </span>
                 </button>
@@ -111,23 +119,23 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
             })}
           </div>
 
-          <div className="flex overflow-x-auto gap-3 pb-2 no-scrollbar">
+          <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar">
             {classesForDay.length > 0 ? (
               classesForDay.map((cls) => (
                 <div
                   key={cls.id}
-                  className="min-w-[165px] bg-[#2c2c2e] dark:bg-zinc-900 border border-white/5 p-4 rounded-2xl flex flex-col gap-2.5 group hover:border-[#69e0b1]/30 transition-all cursor-pointer shadow-lg"
+                  className="min-w-[130px] bg-[#2c2c2e] dark:bg-zinc-900 border border-white/5 p-3 rounded-xl flex flex-col gap-1.5 group hover:border-[#69e0b1]/30 transition-all cursor-pointer shadow-lg"
                 >
-                  <div className="flex items-center gap-2 text-zinc-400">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="opacity-70"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                    <span className="text-[13px] font-medium tracking-tight whitespace-nowrap">{cls.startTime} - {cls.endTime}</span>
+                  <div className="flex items-center gap-1.5 text-zinc-400">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="opacity-70"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                    <span className="text-[11px] font-medium tracking-tight whitespace-nowrap">{cls.startTime} - {cls.endTime}</span>
                   </div>
-                  <div className="space-y-0.5">
-                    <h4 className="text-white font-semibold tracking-tight text-[16px] leading-tight truncate">
+                  <div className="space-y-0">
+                    <h4 className="text-white font-semibold tracking-tight text-[13px] leading-tight truncate">
                       {cls.name}
                     </h4>
                     <div className="flex items-center">
-                      <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.05em]">{cls.type}</span>
+                      <span className="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.05em]">{cls.type}</span>
                     </div>
                   </div>
                 </div>
@@ -145,7 +153,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <div className="bg-white dark:bg-zinc-950 p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-all">
           <div className="flex justify-between items-start mb-3 lg:mb-4">
-            <div className="p-1.5 lg:p-2 bg-zinc-950 text-white rounded-lg">
+            <div className="p-1.5 lg:p-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-lg">
               <Icons.Users />
             </div>
             <span className="hidden sm:inline-block text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-50 text-emerald-600">
@@ -158,7 +166,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
 
         <div className="bg-white dark:bg-zinc-950 p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-all">
           <div className="flex justify-between items-start mb-3 lg:mb-4">
-            <div className="p-1.5 lg:p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-lg">
+            <div className="p-1.5 lg:p-2 bg-zinc-100 dark:bg-white text-zinc-900 dark:text-zinc-950 rounded-lg">
               <Icons.Calendar />
             </div>
           </div>
@@ -168,7 +176,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
 
         <div className="bg-white dark:bg-zinc-950 p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-all">
           <div className="flex justify-between items-start mb-3 lg:mb-4">
-            <div className="p-1.5 lg:p-2 bg-zinc-950 text-white rounded-lg">
+            <div className="p-1.5 lg:p-2 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-lg">
               <Icons.Bot />
             </div>
             <span className="hidden sm:inline-block text-[10px] font-bold px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
@@ -176,7 +184,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
             </span>
           </div>
           <h3 className="text-zinc-500 dark:text-zinc-400 text-[10px] lg:text-sm font-bold uppercase tracking-wider">No Tatame</h3>
-          <p className="text-lg lg:text-2xl font-black text-zinc-950 dark:text-white mt-1">32</p>
+          <p className="text-lg lg:text-2xl font-black text-zinc-950 dark:text-white mt-1">{loading ? '...' : studentsPresentToday}</p>
         </div>
 
         {/* CARD DE GRADUAÇÃO - REDIRECIONA PARA ALUNOS */}
@@ -196,7 +204,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
           </div>
           <h3 className="text-zinc-500 dark:text-zinc-400 text-[10px] lg:text-sm font-bold uppercase tracking-wider">Graduação</h3>
           <p className="text-lg lg:text-2xl font-black text-zinc-950 dark:text-white mt-1 flex items-center justify-between">
-            {eligibleCount} Elegíveis
+            {loading ? '...' : `${eligibleCount} Elegíveis`}
             <svg className="text-zinc-300 group-hover:text-amber-500 transition-colors" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="9 18 15 12 9 6" /></svg>
           </p>
         </button>
@@ -251,7 +259,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
               </div>
             ))}
           </div>
-          <button className="w-full mt-6 py-2.5 lg:py-3 text-xs lg:text-sm font-bold text-zinc-950 dark:text-white bg-zinc-100 dark:bg-zinc-800 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors active:scale-95">
+          <button className="w-full mt-6 py-2.5 lg:py-3 text-xs lg:text-sm font-bold text-white dark:text-zinc-950 bg-zinc-950 dark:bg-white rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors active:scale-95">
             Ver Todos os Treinos
           </button>
         </div>

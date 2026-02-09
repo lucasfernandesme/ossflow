@@ -142,14 +142,14 @@ const StudentList: React.FC<StudentListProps> = ({
           <div className="flex gap-2">
             <button
               onClick={onAddStudent}
-              className="bg-zinc-950 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-black transition-colors flex items-center justify-center gap-2 shadow-lg shadow-zinc-950/10 active:scale-95 flex-1 sm:flex-initial"
+              className="bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 px-4 py-2.5 rounded-xl font-bold hover:bg-black dark:hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-zinc-950/10 active:scale-95 flex-1 sm:flex-initial"
             >
               <span>+ Novo</span>
             </button>
 
             <button
               onClick={onManageCategories}
-              className="bg-zinc-100 text-zinc-950 px-4 py-2.5 rounded-xl font-bold hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 border border-zinc-200 active:scale-95 flex-1 sm:flex-initial"
+              className="bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white px-4 py-2.5 rounded-xl font-bold hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 active:scale-95 flex-1 sm:flex-initial"
             >
               <Icons.List />
               <span className="hidden sm:inline">Categorias</span>
@@ -159,7 +159,7 @@ const StudentList: React.FC<StudentListProps> = ({
               onClick={toggleGraduationFilter}
               className={`px-4 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border-2 active:scale-95 flex-1 sm:flex-initial ${activeFilter === 'graduation'
                 ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20'
-                : 'bg-white text-zinc-950 border-zinc-100 hover:border-amber-400'
+                : 'bg-white dark:bg-zinc-950 text-zinc-950 dark:text-white border-zinc-100 dark:border-zinc-800 hover:border-amber-400'
                 }`}
             >
               <Icons.Award />

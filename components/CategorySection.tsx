@@ -53,9 +53,9 @@ const CategorySection: React.FC<CategorySectionProps> = ({ categories, setCatego
           />
           <button
             onClick={addCategory}
-            className="bg-zinc-950 text-white px-6 py-3 rounded-2xl font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 whitespace-nowrap"
+            className="bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 px-6 py-3 rounded-2xl font-black uppercase tracking-widest hover:bg-black dark:hover:bg-zinc-200 transition-all active:scale-95 whitespace-nowrap"
           >
-            Cadastrar
+            Nova Categoria
           </button>
         </div>
       </div>

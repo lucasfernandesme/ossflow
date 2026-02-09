@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Student, Belt } from '../types';
 import { StudentService } from '../services/studentService';
 import { useBelt } from '../contexts/BeltContext';
@@ -98,12 +98,29 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   const [currentStripes, setCurrentStripes] = useState<number>(student?.stripes || 0);
   const [totalClasses, setTotalClasses] = useState<number>(student?.totalClassesAttended || 0);
 
+  useEffect(() => {
+    if (student) {
+      if (student.phone) setPhone(maskPhone(student.phone));
+      if (student.cpf) setCpf(maskCPF(student.cpf));
+    }
+  }, [student]);
+
   // States para controles de UI
   const [accessVideos, setAccessVideos] = useState(false);
   const [activeMenu, setActiveMenu] = useState<'belt' | 'stripe' | 'freq' | 'categories' | null>(null);
   const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showBeltEditModal, setShowBeltEditModal] = useState(false);
   const [editingBelt, setEditingBelt] = useState<any>(null);
+  const [draftStripes, setDraftStripes] = useState<number>(student?.stripes || 0);
+  const [draftGraduationDate, setDraftGraduationDate] = useState<string>(student?.lastGraduationDate || new Date().toISOString().split('T')[0]);
+
+  useEffect(() => {
+    if (activeMenu === 'stripe') {
+      setDraftStripes(currentStripes);
+      setDraftGraduationDate(graduationDate);
+    }
+  }, [activeMenu, currentStripes, graduationDate]);
 
   // Cálculos de Evolução
   const evolutionData = useMemo(() => {
@@ -122,22 +139,35 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
       nextStripeGoal: 0, remainingForStripe: 0, remainingForGraduation: 0, totalRequired: 0, progressPercent: 0
     };
 
-    // Meta para o próximo grau (ex: se tem 1 grau, meta é 2 * freq)
-    const nextStripeGoal = (currentStripes + 1) * beltInfo.freqReq;
-    const remainingForStripe = Math.max(0, nextStripeGoal - totalClasses);
+    const isReadyForBelt = currentStripes >= 4;
+
+    // Meta para o próximo grau (individual, conforme configurado)
+    const stripeStepGoal = beltInfo.freqReq;
+
+    // Aulas acumuladas para o PRÓXIMO grau específico
+    const currentStripeProgress = isReadyForBelt
+      ? totalClasses
+      : Math.max(0, totalClasses - (currentStripes * beltInfo.freqReq));
+
+    const remainingForStripe = isReadyForBelt
+      ? 0
+      : Math.max(0, stripeStepGoal - currentStripeProgress);
 
     // Meta para a próxima faixa
     const remainingForGraduation = Math.max(0, beltInfo.classesReq - totalClasses);
 
-    // Porcentagem para a barra de progresso (baseada no próximo grau)
-    const progressPercent = Math.min(100, (totalClasses / nextStripeGoal) * 100);
+    // Porcentagem para a barra de progresso (baseada no objetivo imediato)
+    const displayGoal = isReadyForBelt ? beltInfo.classesReq : stripeStepGoal;
+    const progressPercent = Math.min(100, (currentStripeProgress / displayGoal) * 100);
 
     return {
-      nextStripeGoal,
+      nextStripeGoal: isReadyForBelt ? beltInfo.classesReq : stripeStepGoal,
+      currentStripeProgress,
       remainingForStripe,
       remainingForGraduation,
       totalRequired: beltInfo.classesReq,
-      progressPercent
+      progressPercent,
+      isReadyForBelt
     };
   }, [selectedBelt, currentStripes, totalClasses, belts]);
 
@@ -149,9 +179,37 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
     }
   };
 
+  const maskPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 10) {
+      return numbers
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{4})(\d)/, "$1-$2")
+        .replace(/(-\d{4})\d+?$/, "$1");
+    } else {
+      return numbers
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{5})(\d)/, "$1-$2")
+        .replace(/(-\d{4})\d+?$/, "$1");
+    }
+  };
+
+  const maskCPF = (value: string) => {
+    return value
+      .replace(/\D/g, "")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+      .replace(/(-\d{2})\d+?$/, "$1");
+  };
+
   const handleSave = async () => {
-    if (!name) return alert('O nome do aluno é obrigatório!');
+    if (!name) {
+      setMessage({ type: 'error', text: 'O nome do aluno é obrigatório!' });
+      return;
+    }
     setSaving(true);
+    setMessage(null);
 
     try {
       const studentData: any = {
@@ -164,8 +222,8 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         categories: selectedCategories,
         totalClassesAttended: totalClasses,
         email,
-        phone,
-        cpf,
+        phone: phone.replace(/\D/g, ''),
+        cpf: cpf.replace(/\D/g, ''),
         birthday,
         startDate,
         lastGraduationDate: graduationDate,
@@ -177,11 +235,16 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
       } else {
         await StudentService.create(studentData);
       }
-      onBack();
-    } catch (error) {
+
+      setMessage({ type: 'success', text: 'Dados salvos com sucesso!' });
+
+      setTimeout(() => {
+        onBack();
+      }, 1500);
+    } catch (error: any) {
       console.error('Erro ao salvar:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      alert(`Erro ao salvar aluno: ${errorMessage}`);
+      const errorMessage = error?.message || error?.details || 'Erro desconhecido';
+      setMessage({ type: 'error', text: `Erro ao salvar aluno: ${errorMessage}` });
     } finally {
       setSaving(false);
     }
@@ -230,13 +293,6 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             <BeltGraphicLarge
               beltName={selectedBelt}
               stripes={currentStripes}
-              onClick={() => {
-                const belt = belts.find(b => b.name === selectedBelt || b.name.includes(selectedBelt));
-                if (belt) {
-                  setEditingBelt(belt);
-                  setShowBeltEditModal(true);
-                }
-              }}
             />
           </div>
         </div>
@@ -304,8 +360,9 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
               {[0, 1, 2, 3, 4].map((stripe) => (
                 <button
                   key={stripe}
-                  onClick={() => setCurrentStripes(stripe)}
-                  className={`flex-1 py-3 rounded-xl font-bold transition-all border ${currentStripes === stripe ? 'bg-white text-zinc-950 border-white' : 'bg-transparent text-white border-zinc-700 hover:bg-white/5'}`}
+                  type="button"
+                  onClick={() => setDraftStripes(stripe)}
+                  className={`flex-1 py-3 rounded-xl font-bold transition-all border ${draftStripes === stripe ? 'bg-white text-zinc-950 border-white' : 'bg-transparent text-white border-zinc-700 hover:bg-white/5'}`}
                 >
                   {stripe}
                 </button>
@@ -316,15 +373,20 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
               <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Data da Graduação</label>
               <input
                 type="date"
-                value={graduationDate}
-                onChange={(e) => setGraduationDate(e.target.value)}
+                value={draftGraduationDate}
+                onChange={(e) => setDraftGraduationDate(e.target.value)}
                 className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-[#3b82f6] outline-none transition-all text-sm font-bold"
               />
             </div>
 
             <button
-              onClick={() => setActiveMenu(null)}
-              className="w-full mt-4 bg-[#3b82f6] text-white py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-[#2563eb] transition-colors"
+              type="button"
+              onClick={() => {
+                setCurrentStripes(draftStripes);
+                setGraduationDate(draftGraduationDate);
+                setActiveMenu(null);
+              }}
+              className="w-full mt-4 bg-[#3b82f6] text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-[#2563eb] transition-colors shadow-lg shadow-[#3b82f6]/20"
             >
               Confirmar
             </button>
@@ -367,10 +429,12 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
           {/* Lado Esquerdo: Aulas e Grau */}
           <div className="flex-1 space-y-1">
             <h4 className="text-white text-3xl font-bold tracking-tight">
-              {totalClasses}/<span className="opacity-80 font-medium">{evolutionData.nextStripeGoal}</span> Aulas
+              {evolutionData.currentStripeProgress}/<span className="opacity-80 font-medium">{evolutionData.nextStripeGoal}</span> Aulas
             </h4>
             <p className="text-zinc-500 text-sm font-bold">
-              {evolutionData.remainingForStripe} para o próximo grau
+              {evolutionData.isReadyForBelt
+                ? 'Progresso para próxima faixa'
+                : `${evolutionData.remainingForStripe} para o próximo grau`}
             </p>
           </div>
 
@@ -419,7 +483,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>}
             label="WhatsApp / Celular"
             value={phone}
-            onChange={setPhone}
+            onChange={(v) => setPhone(maskPhone(v))}
             placeholder="(00) 00000-0000"
           />
 
@@ -427,7 +491,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             icon={<span className="font-black text-xs">CPF</span>}
             label="Documento Federal"
             value={cpf}
-            onChange={setCpf}
+            onChange={(v) => setCpf(maskCPF(v))}
             placeholder="000.000.000-00"
           />
 
@@ -450,20 +514,28 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
           />
         </div>
 
+        {message && (
+          <div className={`mx-6 mt-4 p-4 rounded-2xl text-sm font-bold text-center animate-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+            {message.text}
+          </div>
+        )}
+
         {/* BOTTOM ACTION BUTTONS */}
-        <div className="px-6 pt-10 flex flex-col sm:flex-row gap-4">
+        <div className="px-6 pt-10 flex flex-col sm:flex-row gap-3">
           <button
+            type="button"
             onClick={onBack}
-            className="flex-1 bg-zinc-800 text-white py-4.5 rounded-2xl font-black uppercase text-sm tracking-widest active:scale-95 transition-transform shadow-xl"
+            className="flex-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-95 transition-all shadow-sm border border-zinc-200 dark:border-zinc-700"
           >
             Cancelar
           </button>
           <button
+            type="button"
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 bg-zinc-950 text-white py-4.5 rounded-2xl font-black uppercase text-sm tracking-widest active:scale-95 transition-transform shadow-[0_10px_30px_rgba(0,0,0,0.4)] border border-white/10 disabled:opacity-50"
+            className="flex-1 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-95 transition-all shadow-lg shadow-zinc-950/20 dark:shadow-white/5 border border-transparent disabled:opacity-50"
           >
-            {saving ? 'Salvando...' : 'Salvar Aluno'}
+            {saving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </div>
       </div>

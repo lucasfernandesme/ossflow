@@ -66,7 +66,7 @@ const VideoSection: React.FC = () => {
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-zinc-950 text-white px-6 py-2.5 rounded-xl font-bold hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-zinc-950/10 active:scale-95"
+          className="bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 px-6 py-2.5 rounded-xl font-bold hover:bg-black dark:hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 shadow-lg shadow-zinc-950/10 active:scale-95"
         >
           {showForm ? 'Cancelar' : '+ Postar Vídeo'}
         </button>
@@ -139,9 +139,9 @@ const VideoSection: React.FC = () => {
           </div>
           <button
             onClick={handleAddVideo}
-            className="w-full bg-zinc-950 text-white py-3 rounded-xl font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 mt-2"
+            className="w-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-3 rounded-xl font-black uppercase tracking-widest hover:bg-black dark:hover:bg-zinc-200 transition-all active:scale-95 mt-2"
           >
-            Publicar no App
+            Salvar Vídeo
           </button>
         </div>
       )}
