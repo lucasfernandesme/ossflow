@@ -32,6 +32,7 @@ export const BeltService = {
         }
 
         // 3. Se não existirem, faz o seed inicial com os dados padrão (BELT_LEVELS)
+        // Usar upsert para evitar duplicatas em caso de race condition
         const beltsToInsert = BELT_LEVELS.map(belt => ({
             user_id: user.id,
             name: belt.name,
@@ -43,14 +44,40 @@ export const BeltService = {
             special: belt.special || null
         }));
 
+        // Usar upsert com onConflict para evitar duplicatas
         const { data: createdBelts, error: seedError } = await supabase
             .from('belts')
-            .insert(beltsToInsert)
+            .upsert(beltsToInsert, {
+                onConflict: 'user_id,name,position',
+                ignoreDuplicates: true
+            })
             .select();
 
-        if (seedError) throw seedError;
+        if (seedError) {
+            // Se falhar, tenta buscar novamente (pode ter sido criado por outra sessão)
+            const { data: retryBelts } = await supabase
+                .from('belts')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('position', { ascending: true });
 
-        return createdBelts.map((b: any) => ({
+            if (retryBelts && retryBelts.length > 0) {
+                return retryBelts.map((b: any) => ({
+                    id: b.id,
+                    name: b.name,
+                    position: b.position,
+                    classesReq: b.classes_req,
+                    freqReq: b.freq_req,
+                    color: b.color,
+                    secondaryColor: b.secondary_color,
+                    special: b.special
+                }));
+            }
+
+            throw seedError;
+        }
+
+        return (createdBelts || []).map((b: any) => ({
             id: b.id,
             name: b.name,
             position: b.position,
@@ -97,5 +124,37 @@ export const BeltService = {
         } as BeltInfo;
     },
 
-    // TODO: Implement update and delete if needed for UI editing
+    async update(id: string, belt: Partial<BeltInfo>) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Usuário não autenticado");
+
+        const payload: any = {};
+        if (belt.name !== undefined) payload.name = belt.name;
+        if (belt.position !== undefined) payload.position = belt.position;
+        if (belt.classesReq !== undefined) payload.classes_req = belt.classesReq;
+        if (belt.freqReq !== undefined) payload.freq_req = belt.freqReq;
+        if (belt.color !== undefined) payload.color = belt.color;
+        if (belt.secondaryColor !== undefined) payload.secondary_color = belt.secondaryColor;
+        if (belt.special !== undefined) payload.special = belt.special;
+
+        const { data, error } = await supabase
+            .from('belts')
+            .update(payload)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        return {
+            id: data.id,
+            name: data.name,
+            position: data.position,
+            classesReq: data.classes_req,
+            freqReq: data.freq_req,
+            color: data.color,
+            secondaryColor: data.secondary_color,
+            special: data.special
+        } as BeltInfo;
+    },
 };

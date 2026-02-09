@@ -12,6 +12,7 @@ import CategorySection from './components/CategorySection';
 import { Student } from './types';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { BeltProvider } from './contexts/BeltContext';
 import { LoginScreen } from './components/LoginScreen';
 
 const AuthenticatedApp: React.FC = () => {
@@ -164,7 +165,9 @@ const AuthenticatedApp: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <AuthenticatedApp />
+      <BeltProvider>
+        <AuthenticatedApp />
+      </BeltProvider>
     </AuthProvider>
   );
 };

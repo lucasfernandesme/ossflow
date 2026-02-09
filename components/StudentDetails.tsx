@@ -1,8 +1,8 @@
-
 import React, { useState, useMemo } from 'react';
 import { Student, Belt } from '../types';
-import { BELT_LEVELS } from '../constants';
 import { StudentService } from '../services/studentService';
+import { useBelt } from '../contexts/BeltContext';
+import BeltEditModal from './BeltEditModal';
 
 interface StudentDetailsProps {
   onBack: () => void;
@@ -10,15 +10,21 @@ interface StudentDetailsProps {
   availableCategories: string[];
 }
 
-const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number }> = ({ beltName, stripes }) => {
-  const beltInfo = BELT_LEVELS.find(b => b.name === beltName || b.name.includes(beltName)) || BELT_LEVELS[13];
+const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number, onClick?: () => void }> = ({ beltName, stripes, onClick }) => {
+  const { belts } = useBelt();
+  const beltInfo = belts.find(b => b.name === beltName || b.name.includes(beltName)) || belts[0] || { color: '#FFF' }; // Fallback safe
+
+  if (!beltInfo) return null;
 
   return (
     <div className="flex items-center gap-3 mt-2">
-      <div className="h-6 w-32 bg-zinc-950 rounded border border-white/20 shadow-xl flex overflow-hidden relative">
+      <button
+        onClick={onClick}
+        className="h-6 w-32 bg-zinc-950 rounded border border-white/20 shadow-xl flex overflow-hidden relative hover:border-[#3b82f6]/50 transition-all active:scale-95 cursor-pointer"
+      >
         <div className="flex-1 relative" style={{ backgroundColor: beltInfo.color }}>
-          {beltInfo.secondary && (
-            <div className="absolute inset-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondary, opacity: 0.8 }}></div>
+          {beltInfo.secondaryColor && (
+            <div className="absolute inset-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>
           )}
         </div>
         <div className={`w-10 h-full flex items-center justify-center gap-0.5 px-1 border-x border-white/10 ${beltName.includes('Preta') ? 'bg-red-600' : 'bg-zinc-900'}`}>
@@ -30,11 +36,11 @@ const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number }> = ({ bel
           ))}
         </div>
         <div className="w-2 h-full" style={{ backgroundColor: beltInfo.color }}>
-          {beltInfo.secondary && (
-            <div className="w-full h-1/2 absolute top-1/4" style={{ backgroundColor: beltInfo.secondary, opacity: 0.8 }}></div>
+          {beltInfo.secondaryColor && (
+            <div className="w-full h-1/2 absolute top-1/4" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>
           )}
         </div>
-      </div>
+      </button>
       <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">{stripes} GRAUS</span>
     </div>
   );
@@ -77,6 +83,7 @@ const SwitchItem = ({ label, value, onChange }: { label: string, value: boolean,
 );
 
 const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availableCategories }) => {
+  const { belts } = useBelt();
   // Estados para todos os campos - Inicializam vazios se for novo aluno
   const [name, setName] = useState(student?.name || '');
   const [email, setEmail] = useState(student?.email || '');
@@ -95,17 +102,32 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   const [accessVideos, setAccessVideos] = useState(false);
   const [activeMenu, setActiveMenu] = useState<'belt' | 'stripe' | 'freq' | 'categories' | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showBeltEditModal, setShowBeltEditModal] = useState(false);
+  const [editingBelt, setEditingBelt] = useState<any>(null);
 
   // Cálculos de Evolução
   const evolutionData = useMemo(() => {
-    const beltInfo = BELT_LEVELS.find(b => b.name === selectedBelt || b.name.includes(selectedBelt)) || BELT_LEVELS[13];
+    if (belts.length === 0) return {
+      nextStripeGoal: 0,
+      remainingForStripe: 0,
+      remainingForGraduation: 0,
+      totalRequired: 0,
+      progressPercent: 0
+    };
+
+    const beltInfo = belts.find(b => b.name === selectedBelt || b.name.includes(selectedBelt)) || belts[0];
+
+    // Fallback if still not found
+    if (!beltInfo) return {
+      nextStripeGoal: 0, remainingForStripe: 0, remainingForGraduation: 0, totalRequired: 0, progressPercent: 0
+    };
 
     // Meta para o próximo grau (ex: se tem 1 grau, meta é 2 * freq)
-    const nextStripeGoal = (currentStripes + 1) * beltInfo.freq;
+    const nextStripeGoal = (currentStripes + 1) * beltInfo.freqReq;
     const remainingForStripe = Math.max(0, nextStripeGoal - totalClasses);
 
     // Meta para a próxima faixa
-    const remainingForGraduation = Math.max(0, beltInfo.aulas - totalClasses);
+    const remainingForGraduation = Math.max(0, beltInfo.classesReq - totalClasses);
 
     // Porcentagem para a barra de progresso (baseada no próximo grau)
     const progressPercent = Math.min(100, (totalClasses / nextStripeGoal) * 100);
@@ -114,10 +136,10 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
       nextStripeGoal,
       remainingForStripe,
       remainingForGraduation,
-      totalRequired: beltInfo.aulas,
+      totalRequired: beltInfo.classesReq,
       progressPercent
     };
-  }, [selectedBelt, currentStripes, totalClasses]);
+  }, [selectedBelt, currentStripes, totalClasses, belts]);
 
   const toggleCategory = (cat: string) => {
     if (selectedCategories.includes(cat)) {
@@ -205,7 +227,17 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
               placeholder="Nome do Aluno..."
               className="bg-transparent text-white text-2xl font-black tracking-tight w-full focus:outline-none placeholder:text-zinc-700"
             />
-            <BeltGraphicLarge beltName={selectedBelt} stripes={currentStripes} />
+            <BeltGraphicLarge
+              beltName={selectedBelt}
+              stripes={currentStripes}
+              onClick={() => {
+                const belt = belts.find(b => b.name === selectedBelt || b.name.includes(selectedBelt));
+                if (belt) {
+                  setEditingBelt(belt);
+                  setShowBeltEditModal(true);
+                }
+              }}
+            />
           </div>
         </div>
       </div>
@@ -241,15 +273,15 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
               </button>
             </div>
             <div className="grid grid-cols-1 gap-1 max-h-[250px] overflow-y-auto no-scrollbar">
-              {BELT_LEVELS.map((belt, idx) => (
+              {belts.map((belt, idx) => (
                 <button
-                  key={idx}
+                  key={belt.id || idx}
                   onClick={() => { setSelectedBelt(belt.name); setActiveMenu(null); }}
                   className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors group"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-4 rounded border border-white/10 relative overflow-hidden" style={{ backgroundColor: belt.color }}>
-                      {belt.secondary && <div className="absolute inset-0 top-1/2" style={{ backgroundColor: belt.secondary }}></div>}
+                      {belt.secondaryColor && <div className="absolute inset-0 top-1/2" style={{ backgroundColor: belt.secondaryColor }}></div>}
                     </div>
                     <span className={`text-xs font-bold ${selectedBelt === belt.name ? 'text-[#3b82f6]' : 'text-zinc-300'}`}>{belt.name}</span>
                   </div>
@@ -435,6 +467,14 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
           </button>
         </div>
       </div>
+
+      {/* Belt Edit Modal */}
+      {showBeltEditModal && editingBelt && (
+        <BeltEditModal
+          belt={editingBelt}
+          onClose={() => setShowBeltEditModal(false)}
+        />
+      )}
     </div>
   );
 };
