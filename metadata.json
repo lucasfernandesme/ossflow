@@ -1,0 +1,7 @@
+{
+  "name": "OssFlow App - Gestão de Academia",
+  "description": "Sistema completo para gestão de academias de Jiu-Jitsu, incluindo controle de alunos, frequências, graduações e assistente IA para senseis.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
