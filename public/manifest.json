@@ -1,0 +1,16 @@
+{
+    "name": "OssFlow - Gestão de Jiu-Jitsu",
+    "short_name": "OssFlow",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#09090b",
+    "theme_color": "#09090b",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
