@@ -3,17 +3,10 @@ import React, { useState, useMemo } from 'react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { BELT_LEVELS, Icons } from '../constants';
 import { Student, TrainingClass } from '../types';
-
-const attendanceData = [
-  { name: 'Seg', presence: 42 },
-  { name: 'Ter', presence: 38 },
-  { name: 'Qua', presence: 45 },
-  { name: 'Qui', presence: 30 },
-  { name: 'Sex', presence: 52 },
-  { name: 'Sáb', presence: 25 },
-];
+import { getLocalDateString } from '../utils/dateUtils';
 
 const WEEKDAYS_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const WEEKDAYS_SHORT = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
 interface DashboardProps {
   onGraduationClick: () => void;
@@ -24,17 +17,50 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
 
   const [classes, setClasses] = useState<TrainingClass[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [attendanceData, setAttendanceData] = useState<{ name: string; presence: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [classesData, studentsData] = await Promise.all([
-          import('../services/classService').then(m => m.ClassService.getAll()),
-          import('../services/studentService').then(m => m.StudentService.getAll())
+        const studentService = await import('../services/studentService').then(m => m.StudentService);
+        const classService = await import('../services/classService').then(m => m.ClassService);
+
+        // Get current week range based on local time
+        const now = new Date();
+        const mondayDiff = now.getDay() === 0 ? -6 : 1 - now.getDay();
+        const monday = new Date(now);
+        monday.setDate(now.getDate() + mondayDiff);
+        monday.setHours(0, 0, 0, 0);
+
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+
+        const startDateStr = getLocalDateString(monday);
+        const endDateStr = getLocalDateString(sunday);
+
+        const [classesData, studentsData, attendanceCounts] = await Promise.all([
+          classService.getAll(),
+          studentService.getAll(),
+          studentService.getAttendanceCountsForRange(startDateStr, endDateStr)
         ]);
+
         setClasses(classesData);
         setStudents(studentsData);
+
+        // Transform attendance counts to chart format using local dates
+        const chartData = WEEKDAYS_SHORT.map((label, index) => {
+          const date = new Date(monday);
+          date.setDate(monday.getDate() + index);
+          const dateStr = getLocalDateString(date);
+          return {
+            name: label,
+            presence: attendanceCounts[dateStr] || 0
+          };
+        });
+
+        setAttendanceData(chartData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -49,9 +75,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
     const days = [];
     const current = new Date(selectedDate);
     const day = current.getDay();
-    const diff = current.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+    const diff = current.getDate() - day + (day === 0 ? -6 : 1);
 
-    const monday = new Date(current.setDate(diff));
+    const monday = new Date(current);
+    monday.setDate(diff);
 
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday);
@@ -70,7 +97,11 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
 
   // Contagem de Alunos Prontos para Graduação (apenas para exibição numérica)
   const eligibleCount = useMemo(() => {
+    const today = getLocalDateString();
     return students.filter(student => {
+      // Se graduou hoje, não contar como elegível
+      if (student.lastGraduationDate === today) return false;
+
       const beltCriteria = BELT_LEVELS.find(b => b.name.includes(student.belt)) || BELT_LEVELS[13];
       const nextStripeThreshold = (student.stripes + 1) * beltCriteria.freq;
       const nextBeltThreshold = beltCriteria.aulas;
@@ -81,7 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
   }, [students]);
 
   const studentsPresentToday = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     return students.filter(s => s.lastAttendance === today).length;
   }, [students]);
 

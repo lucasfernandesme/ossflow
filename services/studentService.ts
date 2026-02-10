@@ -147,5 +147,32 @@ export const StudentService = {
 
         if (error) throw error;
         return data as { class_id: string; student_id: string }[];
+    },
+
+    async getAttendanceCountsForRange(startDate: string, endDate: string) {
+        const { data, error } = await supabase
+            .from('attendance_logs')
+            .select('attendance_date')
+            .gte('attendance_date', startDate)
+            .lte('attendance_date', endDate);
+
+        if (error) throw error;
+
+        // Group counts by date
+        const counts: Record<string, number> = {};
+        data.forEach(log => {
+            counts[log.attendance_date] = (counts[log.attendance_date] || 0) + 1;
+        });
+
+        return counts;
+    },
+
+    async delete(id: string) {
+        const { error } = await supabase
+            .from('students')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
     }
 };

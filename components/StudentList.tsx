@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { BELT_LEVELS, Icons } from '../constants';
 import { Student } from '../types';
 import { StudentService } from '../services/studentService';
+import { getLocalDateString } from '../utils/dateUtils';
 
 interface StudentListProps {
   onAddStudent: () => void;
@@ -87,6 +88,10 @@ const StudentList: React.FC<StudentListProps> = ({
   };
 
   const getEligibility = (student: Student) => {
+    // Se graduou hoje, não mostrar na lista de elegíveis para sair da tela conforme solicitado
+    const today = getLocalDateString();
+    if (student.lastGraduationDate === today) return null;
+
     const beltCriteria = BELT_LEVELS.find(b => b.name.includes(student.belt)) || BELT_LEVELS[13];
     const nextStripeThreshold = (student.stripes + 1) * beltCriteria.freq;
     const nextBeltThreshold = beltCriteria.aulas;

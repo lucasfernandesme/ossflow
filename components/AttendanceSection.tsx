@@ -4,6 +4,7 @@ import { Icons } from '../constants';
 import { Belt, TrainingClass, Student } from '../types';
 import { ClassService } from '../services/classService';
 import { StudentService } from '../services/studentService';
+import { getLocalDateString } from '../utils/dateUtils';
 
 const WEEKDAYS = [
   { label: 'DOM', value: 0 },
@@ -42,7 +43,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString());
 
   const loadData = async (date: string = selectedDate) => {
     try {
@@ -167,6 +168,13 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
 
     if (currentErrors.length > 0) {
       setErrors(currentErrors);
+      return;
+    }
+
+    // Validar se o horário de início é menor que o de fim
+    if (newClass.startTime >= newClass.endTime) {
+      alert('🚫 O horário de início deve ser anterior ao horário de término!');
+      setErrors(['startTime', 'endTime']);
       return;
     }
 

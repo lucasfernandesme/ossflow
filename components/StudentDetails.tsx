@@ -1,7 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Student, Belt } from '../types';
 import { StudentService } from '../services/studentService';
+import { supabase } from '../services/supabase';
 import { useBelt } from '../contexts/BeltContext';
+import { Icons } from '../constants';
+import { getLocalDateString } from '../utils/dateUtils';
 import BeltEditModal from './BeltEditModal';
 
 interface StudentDetailsProps {
@@ -55,29 +58,29 @@ const EditableInfoItem = ({ icon, label, value, onChange, placeholder, type = "t
   placeholder: string,
   type?: string
 }) => (
-  <div className="flex items-center gap-4 py-4 border-b border-zinc-800/40 last:border-0 px-6 group transition-colors hover:bg-white/[0.02]">
-    <div className="text-zinc-400 w-6 flex justify-center shrink-0 group-focus-within:text-[#3b82f6] transition-colors">{icon}</div>
-    <div className="flex-1 min-w-0">
-      <p className="text-zinc-500 text-[11px] font-bold uppercase tracking-wider mb-0.5">{label}</p>
+  <div className="space-y-1.5">
+    <label className="text-zinc-500 dark:text-zinc-400 text-[11px] font-bold uppercase tracking-wider ml-1">{label}</label>
+    <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-zinc-950 dark:focus-within:ring-white transition-all">
+      <div className="text-zinc-400 w-5 flex justify-center shrink-0">{icon}</div>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-transparent text-white text-base font-semibold focus:outline-none placeholder:text-zinc-700 transition-all border-b border-transparent focus:border-[#3b82f6]/30 pb-1"
+        className="flex-1 bg-transparent text-zinc-950 dark:text-white text-sm font-semibold focus:outline-none placeholder:text-zinc-400"
       />
     </div>
   </div>
 );
 
 const SwitchItem = ({ label, value, onChange }: { label: string, value: boolean, onChange: (v: boolean) => void }) => (
-  <div className="flex items-center justify-between py-4 border-b border-zinc-800/40 px-6 hover:bg-white/[0.02] transition-colors">
-    <p className="text-white text-base font-medium">{label}</p>
+  <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-colors">
+    <p className="text-zinc-950 dark:text-white text-sm font-bold uppercase tracking-tight">{label}</p>
     <button
       onClick={() => onChange(!value)}
-      className={`w-14 h-7.5 rounded-full transition-all relative flex items-center px-1 ${value ? 'bg-[#3b82f6]' : 'bg-zinc-700'}`}
+      className={`w-11 h-6 rounded-full transition-all relative flex items-center px-0.5 ${value ? 'bg-zinc-950 dark:bg-white' : 'bg-zinc-300 dark:bg-zinc-700'}`}
     >
-      <div className={`w-6 h-6 bg-white rounded-full shadow-lg transition-all transform ${value ? 'translate-x-6.5' : 'translate-x-0'}`}></div>
+      <div className={`w-5 h-5 rounded-full shadow-sm transition-all transform ${value ? 'translate-x-5 bg-white dark:bg-zinc-950' : 'translate-x-0 bg-white'}`}></div>
     </button>
   </div>
 );
@@ -97,6 +100,43 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   const [selectedCategories, setSelectedCategories] = useState<string[]>(student?.categories || []);
   const [currentStripes, setCurrentStripes] = useState<number>(student?.stripes || 0);
   const [totalClasses, setTotalClasses] = useState<number>(student?.totalClassesAttended || 0);
+  const [avatar, setAvatar] = useState(student?.avatar || '');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarClick = () => {
+    document.getElementById('student-avatar-input')?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingAvatar(true);
+      setMessage(null);
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `student-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setAvatar(publicUrl);
+    } catch (error: any) {
+      console.error('Erro no upload:', error);
+      setMessage({ type: 'error', text: 'Erro ao carregar foto do aluno.' });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   useEffect(() => {
     if (student) {
@@ -218,7 +258,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         stripes: currentStripes,
         active: isActive,
         paymentStatus: student?.paymentStatus || 'paid',
-        avatar: student?.avatar,
+        avatar,
         categories: selectedCategories,
         totalClassesAttended: totalClasses,
         email,
@@ -250,170 +290,239 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
     }
   };
 
+  const handleDelete = async () => {
+    if (!student?.id) return;
+
+    if (window.confirm(`Tem certeza que deseja excluir o aluno ${name}? Esta ação não pode ser desfeita.`)) {
+      setSaving(true);
+      try {
+        await StudentService.delete(student.id);
+        setMessage({ type: 'success', text: 'Aluno excluído com sucesso!' });
+        setTimeout(() => {
+          onBack();
+        }, 1500);
+      } catch (error: any) {
+        console.error('Erro ao excluir:', error);
+        setMessage({ type: 'error', text: 'Erro ao excluir aluno.' });
+        setSaving(false);
+      }
+    }
+  };
+
 
 
   return (
-    <div className="fixed inset-0 bg-[#1c1c1e] z-[60] overflow-y-auto no-scrollbar lg:relative lg:inset-auto lg:min-h-screen lg:rounded-3xl lg:shadow-2xl">
+    <div className="fixed inset-0 bg-white dark:bg-zinc-950 z-[60] flex flex-col animate-in fade-in duration-500 overflow-y-auto no-scrollbar lg:relative lg:inset-auto lg:min-h-screen lg:rounded-3xl lg:shadow-2xl">
       {/* HEADER SECTION */}
-      <div className="relative h-[280px] w-full overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2070&auto=format&fit=crop"
-          className="w-full h-full object-cover opacity-25 grayscale contrast-125 scale-110"
-          alt="Academy Background"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1c1c1e] via-transparent to-black/30"></div>
-
-        <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-10">
-          <button onClick={onBack} className="text-white bg-black/40 p-2.5 rounded-xl backdrop-blur-md border border-white/10 active:scale-95 transition-transform">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m15 18-6-6 6-6" /></svg>
+      <section className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-6 pt-12 relative overflow-hidden">
+        <div className="absolute top-4 left-4 z-10">
+          <button
+            onClick={onBack}
+            className="w-10 h-10 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center shadow-md hover:scale-110 active:scale-95 transition-all text-zinc-950 dark:text-white border border-zinc-100 dark:border-zinc-700"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m15 18-6-6 6-6" /></svg>
           </button>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-white font-black text-[10px] leading-tight uppercase tracking-[0.1em] opacity-80">Gestão Técnica</p>
-              <p className="text-white font-black text-xl leading-tight uppercase tracking-tighter">OSSFLOW APP</p>
-            </div>
-            <div className="text-[#f1c40f] text-5xl font-black italic tracking-tighter select-none leading-none">K</div>
+        </div>
+
+        <div className="absolute top-4 right-4 z-10 text-right">
+          <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 leading-none uppercase tracking-widest">Gestão Técnica</p>
+          <div className="flex items-center gap-1.5 justify-end">
+            <h2 className="text-lg font-black italic tracking-tighter text-zinc-900 dark:text-white uppercase leading-none">Ossflow App</h2>
+            <span className="text-amber-500 font-black italic text-2xl leading-none">K</span>
           </div>
         </div>
 
-        <div className="absolute bottom-6 left-6 flex items-end gap-5 w-full pr-12">
-          <div className="relative shrink-0">
-            <div className="w-24 h-24 bg-zinc-800 rounded-2xl overflow-hidden border-4 border-[#1c1c1e] shadow-2xl ring-1 ring-white/5">
-              <img src={student?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'Novo')}&background=random`} className="w-full h-full object-cover" alt="" />
+        <div className="max-w-4xl mx-auto flex flex-col items-center sm:flex-row sm:items-end gap-6 relative z-10 mt-4">
+          <div className="relative group">
+            <div
+              onClick={handleAvatarClick}
+              className="w-32 h-32 rounded-3xl bg-zinc-200 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 shadow-2xl overflow-hidden cursor-pointer group-hover:brightness-110 transition-all flex items-center justify-center"
+            >
+              {avatar ? (
+                <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-zinc-400 font-black text-2xl">
+                  {name ? name.substring(0, 2).toUpperCase() : '??'}
+                </div>
+              )}
+              {uploadingAvatar && (
+                <div className="absolute inset-0 bg-white/40 dark:bg-black/40 flex items-center justify-center">
+                  <div className="w-6 h-6 border-2 border-zinc-950 dark:border-white border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <Icons.Plus className="text-white" />
+              </div>
             </div>
-          </div>
-          <div className="pb-2 flex-1 min-w-0">
             <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nome do Aluno..."
-              className="bg-transparent text-white text-2xl font-black tracking-tight w-full focus:outline-none placeholder:text-zinc-700"
+              id="student-avatar-input"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
             />
+          </div>
+
+          <div className="flex-1 text-center sm:text-left space-y-2">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">Dados do Aluno</span>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Nome do Aluno..."
+                className="bg-transparent text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white focus:outline-none placeholder:text-zinc-300 dark:placeholder:text-zinc-700 w-full"
+              />
+            </div>
             <BeltGraphicLarge
               beltName={selectedBelt}
               stripes={currentStripes}
+              onClick={() => setActiveMenu('stripe')}
             />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ACTION TRAY */}
-      <div className="px-6 py-4 flex items-center gap-2 relative overflow-visible flex-wrap border-b border-zinc-800/40">
-        <button
-          onClick={() => setActiveMenu(activeMenu === 'belt' ? null : 'belt')}
-          className={`px-4 py-2 rounded-xl font-black text-[11px] shadow-lg transition-all uppercase tracking-widest active:scale-95 ${activeMenu === 'belt' ? 'bg-[#3b82f6] text-white' : 'bg-zinc-100 text-zinc-900'}`}
-        >
-          Faixa
-        </button>
-        <button
-          onClick={() => setActiveMenu(activeMenu === 'stripe' ? null : 'stripe')}
-          className={`px-4 py-2 rounded-xl font-black text-[11px] shadow-lg transition-all uppercase tracking-widest active:scale-95 ${activeMenu === 'stripe' ? 'bg-[#3b82f6] text-white' : 'bg-zinc-100 text-zinc-900'}`}
-        >
-          Grau
-        </button>
-        <button
-          onClick={() => setActiveMenu(activeMenu === 'categories' ? null : 'categories')}
-          className={`px-4 py-2 rounded-xl font-black text-[11px] shadow-lg transition-all uppercase tracking-widest active:scale-95 ${activeMenu === 'categories' ? 'bg-[#3b82f6] text-white' : 'bg-zinc-100 text-zinc-900'}`}
-        >
-          Categorias ({selectedCategories.length})
-        </button>
+      <main className="flex-1 max-w-4xl mx-auto w-full p-6 space-y-12 pb-40">
+        {/* QUICK ACTIONS */}
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveMenu(activeMenu === 'belt' ? null : 'belt')}
+            className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${activeMenu === 'belt'
+              ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-transparent shadow-lg'
+              : 'bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
+              }`}
+          >
+            <Icons.Plus className="w-3.5 h-3.5" />
+            Faixa
+          </button>
+          <button
+            onClick={() => setActiveMenu(activeMenu === 'stripe' ? null : 'stripe')}
+            className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${activeMenu === 'stripe'
+              ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-transparent shadow-lg'
+              : 'bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
+              }`}
+          >
+            <Icons.Award className="w-3.5 h-3.5" />
+            Grau
+          </button>
+          <button
+            onClick={() => setActiveMenu(activeMenu === 'categories' ? null : 'categories')}
+            className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${activeMenu === 'categories'
+              ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-transparent shadow-lg'
+              : 'bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
+              }`}
+          >
+            <Icons.Filter className="w-3.5 h-3.5" />
+            Categorias ({selectedCategories.length})
+          </button>
+        </div>
 
-        {/* OVERLAY MENUS (Belt selection, Stripes, Categories) */}
+        {/* OVERLAYS */}
         {activeMenu === 'belt' && (
-          <div className="absolute top-16 left-6 right-6 bg-[#2c2c2e] border border-white/10 rounded-2xl shadow-2xl z-50 p-4 animate-in slide-in-from-top-2 duration-200">
-            <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
-              <h4 className="text-white font-black text-xs uppercase tracking-widest">Selecionar Faixa</h4>
-              <button onClick={() => setActiveMenu(null)} className="text-zinc-500 hover:text-white">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-300">
+            <div className="flex justify-between items-center mb-6">
+              <h4 className="text-sm font-black text-zinc-950 dark:text-white uppercase tracking-widest">Selecionar Faixa</h4>
+              <button onClick={() => setActiveMenu(null)} className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+                <Icons.X />
               </button>
             </div>
-            <div className="grid grid-cols-1 gap-1 max-h-[250px] overflow-y-auto no-scrollbar">
-              {belts.map((belt, idx) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
+              {belts.map((belt) => (
                 <button
-                  key={belt.id || idx}
+                  key={belt.id}
                   onClick={() => { setSelectedBelt(belt.name); setActiveMenu(null); }}
-                  className="flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors group"
+                  className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${selectedBelt === belt.name
+                    ? 'bg-zinc-950 dark:bg-white border-transparent text-white dark:text-zinc-950 shadow-lg'
+                    : 'bg-white dark:bg-zinc-800/50 border-zinc-100 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 text-zinc-600 dark:text-zinc-400'
+                    }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-4 rounded border border-white/10 relative overflow-hidden" style={{ backgroundColor: belt.color }}>
+                    <div className="w-10 h-5 rounded border border-black/10 relative overflow-hidden" style={{ backgroundColor: belt.color }}>
                       {belt.secondaryColor && <div className="absolute inset-0 top-1/2" style={{ backgroundColor: belt.secondaryColor }}></div>}
                     </div>
-                    <span className={`text-xs font-bold ${selectedBelt === belt.name ? 'text-[#3b82f6]' : 'text-zinc-300'}`}>{belt.name}</span>
+                    <span className="text-xs font-bold">{belt.name}</span>
                   </div>
+                  {selectedBelt === belt.name && <Icons.Check className="w-4 h-4" />}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Stripe selection menu */}
         {activeMenu === 'stripe' && (
-          <div className="absolute top-16 left-6 right-6 bg-[#2c2c2e] border border-white/10 rounded-2xl shadow-2xl z-50 p-4 animate-in slide-in-from-top-2 duration-200">
-            <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
-              <h4 className="text-white font-black text-xs uppercase tracking-widest">Selecionar Graus</h4>
-              <button onClick={() => setActiveMenu(null)} className="text-zinc-500 hover:text-white">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-300">
+            <div className="flex justify-between items-center mb-6">
+              <h4 className="text-sm font-black text-zinc-950 dark:text-white uppercase tracking-widest">Graduação</h4>
+              <button onClick={() => setActiveMenu(null)} className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+                <Icons.X />
               </button>
             </div>
-            <div className="flex gap-2">
-              {[0, 1, 2, 3, 4].map((stripe) => (
-                <button
-                  key={stripe}
-                  type="button"
-                  onClick={() => setDraftStripes(stripe)}
-                  className={`flex-1 py-3 rounded-xl font-bold transition-all border ${draftStripes === stripe ? 'bg-white text-zinc-950 border-white' : 'bg-transparent text-white border-zinc-700 hover:bg-white/5'}`}
-                >
-                  {stripe}
-                </button>
-              ))}
-            </div>
+            <div className="space-y-8">
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Quantidade de Graus</label>
+                <div className="flex gap-2">
+                  {[0, 1, 2, 3, 4].map((stripe) => (
+                    <button
+                      key={stripe}
+                      onClick={() => setDraftStripes(stripe)}
+                      className={`flex-1 py-4 rounded-2xl font-black text-lg transition-all border ${draftStripes === stripe
+                        ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-transparent shadow-lg'
+                        : 'bg-white dark:bg-zinc-800 text-zinc-400 border-zinc-100 dark:border-zinc-700 hover:border-zinc-300'
+                        }`}
+                    >
+                      {stripe}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            <div className="mt-4 pt-4 border-t border-white/10">
-              <label className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest mb-2 block">Data da Graduação</label>
-              <input
-                type="date"
-                value={draftGraduationDate}
-                onChange={(e) => setDraftGraduationDate(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-[#3b82f6] outline-none transition-all text-sm font-bold"
-              />
-            </div>
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Data da Graduação</label>
+                <input
+                  type="date"
+                  value={draftGraduationDate}
+                  onChange={(e) => setDraftGraduationDate(e.target.value)}
+                  className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl px-6 py-4 text-zinc-950 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-700"
+                />
+              </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setCurrentStripes(draftStripes);
-                setGraduationDate(draftGraduationDate);
-                setActiveMenu(null);
-              }}
-              className="w-full mt-4 bg-[#3b82f6] text-white py-3 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-[#2563eb] transition-colors shadow-lg shadow-[#3b82f6]/20"
-            >
-              Confirmar
-            </button>
+              <button
+                onClick={() => {
+                  setCurrentStripes(draftStripes);
+                  setGraduationDate(draftGraduationDate);
+                  setActiveMenu(null);
+                }}
+                className="w-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl active:scale-95 transition-all"
+              >
+                Confirmar Graduação
+              </button>
+            </div>
           </div>
         )}
 
-        {/* Categoria selection menu */}
         {activeMenu === 'categories' && (
-          <div className="absolute top-16 left-6 right-6 bg-[#2c2c2e] border border-white/10 rounded-2xl shadow-2xl z-50 p-6 animate-in slide-in-from-top-2 duration-200">
-            <div className="flex justify-between items-center mb-4 pb-2 border-b border-white/5">
-              <h4 className="text-white font-black text-xs uppercase tracking-widest">Público Alvo</h4>
-              <button onClick={() => setActiveMenu(null)} className="text-zinc-500 hover:text-white">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-300">
+            <div className="flex justify-between items-center mb-6">
+              <h4 className="text-sm font-black text-zinc-950 dark:text-white uppercase tracking-widest">Vincular Categorias</h4>
+              <button onClick={() => setActiveMenu(null)} className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+                <Icons.X />
               </button>
             </div>
-            <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto no-scrollbar">
-              {availableCategories.map((cat, idx) => {
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {availableCategories.map((cat) => {
                 const isSelected = selectedCategories.includes(cat);
                 return (
                   <button
-                    key={idx}
+                    key={cat}
                     onClick={() => toggleCategory(cat)}
-                    className={`flex items-center justify-between p-4 rounded-xl transition-all border ${isSelected ? 'bg-[#3b82f6]/10 border-[#3b82f6]' : 'bg-white/5 border-transparent hover:bg-white/10'}`}
+                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${isSelected
+                      ? 'bg-zinc-950 dark:bg-white border-transparent shadow-lg text-white dark:text-zinc-950'
+                      : 'bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-750 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300'
+                      }`}
                   >
-                    <span className={`text-sm font-bold ${isSelected ? 'text-white' : 'text-zinc-400'}`}>{cat}</span>
-                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${isSelected ? 'border-[#3b82f6] bg-[#3b82f6]' : 'border-zinc-700'}`}>
-                      {isSelected && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="4"><polyline points="20 6 9 17 4 12" /></svg>}
+                    <span className="text-xs font-bold">{cat}</span>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-transparent bg-emerald-500' : 'border-zinc-200 dark:border-zinc-600'}`}>
+                      {isSelected && <Icons.Check className="w-3 h-3 text-white" />}
                     </div>
                   </button>
                 );
@@ -421,124 +530,159 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             </div>
           </div>
         )}
-      </div>
 
-      {/* EVOLUTION PROGRESS PANEL (Conforme imagem solicitada) */}
-      <div className="bg-[#1c1c1e] px-6 py-8 flex flex-col gap-6">
-        <div className="flex items-stretch gap-6">
-          {/* Lado Esquerdo: Aulas e Grau */}
-          <div className="flex-1 space-y-1">
-            <h4 className="text-white text-3xl font-bold tracking-tight">
-              {evolutionData.currentStripeProgress}/<span className="opacity-80 font-medium">{evolutionData.nextStripeGoal}</span> Aulas
-            </h4>
-            <p className="text-zinc-500 text-sm font-bold">
-              {evolutionData.isReadyForBelt
-                ? 'Progresso para próxima faixa'
-                : `${evolutionData.remainingForStripe} para o próximo grau`}
+        {/* EVOLUTION STATS */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-8 rounded-[40px] border border-zinc-200 dark:border-zinc-800 flex flex-col gap-2 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
+              <Icons.Award className="w-24 h-24" />
+            </div>
+            <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Treinos no Grau Atual</p>
+            <h3 className="text-5xl font-black text-zinc-900 dark:text-white leading-none">
+              {evolutionData.currentStripeProgress}<span className="text-zinc-300 dark:text-zinc-700">/{evolutionData.nextStripeGoal}</span>
+            </h3>
+            <p className="text-xs font-bold text-zinc-500 mt-2">
+              {evolutionData.remainingForStripe > 0
+                ? `Faltam ${evolutionData.remainingForStripe} aulas para o próximo grau`
+                : "Apto para graduação!"}
             </p>
+            <div className="mt-8 h-3 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden p-0.5">
+              <div
+                className="h-full bg-zinc-950 dark:bg-white rounded-full transition-all duration-1000 ease-out"
+                style={{ width: `${evolutionData.progressPercent}%` }}
+              ></div>
+            </div>
           </div>
 
-          {/* Divisor Vertical */}
-          <div className="w-[1px] bg-zinc-800"></div>
-
-          {/* Lado Direito: Graduação */}
-          <div className="flex-1 space-y-1">
-            <h4 className="text-white text-3xl font-bold tracking-tight">
-              {evolutionData.remainingForGraduation}
-            </h4>
-            <p className="text-zinc-500 text-sm font-bold">
-              Aulas para graduação
-            </p>
+          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-8 rounded-[40px] border border-zinc-200 dark:border-zinc-800 flex flex-col justify-center gap-2 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform text-amber-500">
+              <Icons.Star className="w-24 h-24" />
+            </div>
+            <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Treinos Totais na Faixa</p>
+            <h3 className="text-5xl font-black text-zinc-900 dark:text-white leading-none">
+              {totalClasses}<span className="text-zinc-300 dark:text-zinc-700">/{evolutionData.totalRequired}</span>
+            </h3>
+            <p className="text-xs font-bold text-zinc-500 mt-2">Contagem histórica para troca de faixa</p>
+            <div className="mt-8 flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className={`w-8 h-8 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center ${i < currentStripes ? 'bg-amber-400' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
+                    <Icons.Award className={`w-3 h-3 ${i < currentStripes ? 'text-amber-950' : 'text-zinc-400'}`} />
+                  </div>
+                ))}
+              </div>
+              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{currentStripes} Graus Conquistados</span>
+            </div>
           </div>
         </div>
 
-        {/* Barra de Progresso */}
-        <div className="w-full h-3 bg-zinc-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-white transition-all duration-1000 ease-out"
-            style={{ width: `${evolutionData.progressPercent}%` }}
-          ></div>
-        </div>
-      </div>
-
-      {/* MAIN INFO SECTION */}
-      <div className="pb-32">
-        <div className="px-6 py-6 flex justify-between items-center">
-          <h3 className="text-zinc-500 text-sm font-black uppercase tracking-[0.15em]">Informações Cadastrais</h3>
-        </div>
-
-        <div className="flex flex-col">
-          <SwitchItem label="Aluno Ativo" value={isActive} onChange={setIsActive} />
-          <SwitchItem label="Acesso a Vídeos Técnicos" value={accessVideos} onChange={setAccessVideos} />
-
-          <EditableInfoItem
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>}
-            label="E-mail de Contato"
-            value={email}
-            onChange={setEmail}
-            placeholder="exemplo@email.com"
-          />
-
-          <EditableInfoItem
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>}
-            label="WhatsApp / Celular"
-            value={phone}
-            onChange={(v) => setPhone(maskPhone(v))}
-            placeholder="(00) 00000-0000"
-          />
-
-          <EditableInfoItem
-            icon={<span className="font-black text-xs">CPF</span>}
-            label="Documento Federal"
-            value={cpf}
-            onChange={(v) => setCpf(maskCPF(v))}
-            placeholder="000.000.000-00"
-          />
-
-          <EditableInfoItem
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M12 21a9 9 0 0 0 0-18" /><path d="M12 8a4 4 0 1 1 0 8" /><path d="M12 12h.01" /></svg>}
-            label="Data de Nascimento"
-            value={birthday}
-            onChange={setBirthday}
-            type="date"
-            placeholder="dd/mm/aaaa"
-          />
-
-          <EditableInfoItem
-            icon={<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>}
-            label="Data de Início (Matrícula)"
-            value={startDate}
-            onChange={setStartDate}
-            type="date"
-            placeholder="dd/mm/aaaa"
-          />
-        </div>
-
-        {message && (
-          <div className={`mx-6 mt-4 p-4 rounded-2xl text-sm font-bold text-center animate-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
-            {message.text}
+        {/* CADASTRO SECTION */}
+        <div className="space-y-8">
+          <div className="flex items-center gap-3 ml-1">
+            <div className="w-1.5 h-4 bg-zinc-950 dark:bg-white rounded-full"></div>
+            <h3 className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-[0.2em]">Informações de Contato</h3>
           </div>
-        )}
 
-        {/* BOTTOM ACTION BUTTONS */}
-        <div className="px-6 pt-10 flex flex-col sm:flex-row gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+            <div className="space-y-8">
+              <SwitchItem label="Aluno Ativo" value={isActive} onChange={setIsActive} />
+              <SwitchItem label="Acesso a Vídeos" value={accessVideos} onChange={setAccessVideos} />
+
+              <div className="bg-zinc-50 dark:bg-zinc-900/40 p-6 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4">Metadados</p>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-zinc-500">ID Externo</span>
+                    <span className="text-zinc-900 dark:text-white font-mono">{student?.id ? `#${student.id.substring(0, 8)}` : 'Novo'}</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-zinc-500">Status Financeiro</span>
+                    <span className={`font-black uppercase tracking-widest ${student?.paymentStatus === 'overdue' ? 'text-red-500' : 'text-emerald-500'}`}>
+                      {student?.paymentStatus === 'overdue' ? 'Pendente' : 'Em Dia'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <EditableInfoItem
+                icon={<Icons.Mail className="w-4 h-4" />}
+                label="E-mail"
+                value={email}
+                onChange={setEmail}
+                placeholder="exemplo@email.com"
+                type="email"
+              />
+              <EditableInfoItem
+                icon={<Icons.Phone className="w-4 h-4" />}
+                label="WhatsApp"
+                value={phone}
+                onChange={(v) => setPhone(maskPhone(v))}
+                placeholder="(00) 00000-0000"
+              />
+              <EditableInfoItem
+                icon={<Icons.CreditCard className="w-4 h-4" />}
+                label="CPF"
+                value={cpf}
+                onChange={(v) => setCpf(maskCPF(v))}
+                placeholder="000.000.000-00"
+              />
+              <EditableInfoItem
+                icon={<Icons.Calendar className="w-4 h-4" />}
+                label="Nascimento"
+                value={birthday}
+                onChange={setBirthday}
+                placeholder="AAAA-MM-DD"
+                type="date"
+              />
+              <EditableInfoItem
+                icon={<Icons.Clock className="w-4 h-4" />}
+                label="Início na Academia"
+                value={startDate}
+                onChange={setStartDate}
+                placeholder="AAAA-MM-DD"
+                type="date"
+              />
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* FOOTER ACTIONS */}
+      <footer className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 p-6 z-[70] lg:absolute lg:rounded-b-3xl">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row gap-3">
           <button
-            type="button"
             onClick={onBack}
-            className="flex-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-950 dark:text-white py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-95 transition-all shadow-sm border border-zinc-200 dark:border-zinc-700"
+            className="flex-1 px-8 py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all border border-transparent"
           >
-            Cancelar
+            Voltar
           </button>
+          {student?.id && (
+            <button
+              onClick={handleDelete}
+              disabled={saving}
+              className="flex-1 px-8 py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+            >
+              Excluir
+            </button>
+          )}
           <button
-            type="button"
             onClick={handleSave}
             disabled={saving}
-            className="flex-1 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-4 rounded-xl font-black uppercase text-[10px] tracking-[0.2em] active:scale-95 transition-all shadow-lg shadow-zinc-950/20 dark:shadow-white/5 border border-transparent disabled:opacity-50"
+            className="flex-[2] bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 px-8 py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
           >
-            {saving ? 'Salvando...' : 'Salvar Alterações'}
+            {saving ? 'Gravando...' : 'Salvar Alterações'}
           </button>
         </div>
-      </div>
+        {message && (
+          <div className="max-w-4xl mx-auto mt-4">
+            <div className={`p-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-[0.2em] animate-in slide-in-from-bottom-2 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-lg shadow-emerald-500/5' : 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg shadow-red-500/5'}`}>
+              {message.text}
+            </div>
+          </div>
+        )}
+      </footer>
 
       {/* Belt Edit Modal */}
       {showBeltEditModal && editingBelt && (
