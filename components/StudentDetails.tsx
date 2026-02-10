@@ -382,7 +382,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         </div>
       </section>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full p-6 space-y-12 pb-40">
+      <main className="flex-1 max-w-4xl mx-auto w-full p-6 space-y-12 pb-80">
         {/* QUICK ACTIONS */}
         <div className="flex flex-wrap gap-2">
           <button
@@ -689,6 +689,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         <BeltEditModal
           belt={editingBelt}
           onClose={() => setShowBeltEditModal(false)}
+          studentName={name}
         />
       )}
     </div>

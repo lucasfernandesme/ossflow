@@ -122,10 +122,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
     d1.getFullYear() === d2.getFullYear();
 
   return (
-    <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500 pb-24 lg:pb-0">
+    <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500 pb-24 lg:pb-0 pt-4">
       {/* SELETOR DE DATA ESTILO KANRI */}
       {/* SELETOR DE DATA ESTILO KANRI */}
-      <section className="bg-[#1c1c1e] dark:bg-black -mx-4 lg:-mx-8 p-4 lg:p-6 shadow-inner transition-colors duration-300">
+      <section className="bg-zinc-100 dark:bg-zinc-900 -mx-4 lg:-mx-8 p-4 lg:p-6 shadow-inner transition-colors duration-300">
         <div className="max-w-7xl mx-auto space-y-4">
           <div className="flex items-center justify-between gap-2 overflow-x-hidden">
             {weekDays.map((date, i) => {

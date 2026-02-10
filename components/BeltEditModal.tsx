@@ -5,9 +5,10 @@ import { useBelt } from '../contexts/BeltContext';
 interface BeltEditModalProps {
   belt: BeltInfo;
   onClose: () => void;
+  studentName?: string;
 }
 
-const BeltEditModal: React.FC<BeltEditModalProps> = ({ belt, onClose }) => {
+const BeltEditModal: React.FC<BeltEditModalProps> = ({ belt, onClose, studentName }) => {
   const { updateBelt } = useBelt();
   const [freqReq, setFreqReq] = useState(belt.freqReq);
   const [classesReq, setClassesReq] = useState(belt.classesReq);
@@ -42,6 +43,11 @@ const BeltEditModal: React.FC<BeltEditModalProps> = ({ belt, onClose }) => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h2 className="text-white font-black text-xl uppercase tracking-tight">Editar Faixa</h2>
+              {studentName && (
+                <p className="text-emerald-500 text-[10px] font-black uppercase tracking-widest">
+                  Aluno: {studentName}
+                </p>
+              )}
               <p className="text-zinc-500 text-sm font-bold mt-1">Configurar requisitos de progressão</p>
             </div>
             <button

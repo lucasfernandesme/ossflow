@@ -114,7 +114,7 @@ const AuthenticatedApp: React.FC = () => {
     <div className={`flex flex-col min-h-screen ${isDarkMode ? 'dark bg-zinc-950 text-white' : 'bg-zinc-50 text-zinc-950'}`}>
 
       {/* Mobile/Desktop Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 z-50 px-4 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 z-50 px-4 flex items-center justify-between">
         {/* Left: Theme Toggle */}
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
