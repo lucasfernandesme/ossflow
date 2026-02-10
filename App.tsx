@@ -55,6 +55,7 @@ const AuthenticatedApp: React.FC = () => {
     if (selectedStudent) {
       return (
         <StudentDetails
+          key={selectedStudent === 'new' ? 'new-student' : selectedStudent.id}
           onBack={() => setSelectedStudent(null)}
           student={selectedStudent === 'new' ? undefined : selectedStudent}
           availableCategories={categories}

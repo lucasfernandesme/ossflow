@@ -20,31 +20,31 @@ const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number, onClick?: 
   if (!beltInfo) return null;
 
   return (
-    <div className="flex items-center gap-3 mt-2">
+    <div className="flex items-center gap-3 mt-1 w-full">
       <button
         onClick={onClick}
-        className="h-6 w-32 bg-zinc-950 rounded border border-white/20 shadow-xl flex overflow-hidden relative hover:border-[#3b82f6]/50 transition-all active:scale-95 cursor-pointer"
+        className="h-8 flex-1 bg-zinc-950 rounded-lg border-2 border-white/20 shadow-xl flex overflow-hidden relative hover:border-zinc-400 dark:hover:border-zinc-500 transition-all active:scale-[0.99] cursor-pointer"
       >
         <div className="flex-1 relative" style={{ backgroundColor: beltInfo.color }}>
           {beltInfo.secondaryColor && (
-            <div className="absolute inset-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>
+            <div className="absolute inset-x-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>
           )}
         </div>
-        <div className={`w-10 h-full flex items-center justify-center gap-0.5 px-1 border-x border-white/10 ${beltName.includes('Preta') ? 'bg-red-600' : 'bg-zinc-900'}`}>
+        <div className={`w-20 h-full flex items-center justify-center gap-1.5 px-2 border-x-4 border-white/10 ${beltName.includes('Preta') ? 'bg-red-600' : 'bg-zinc-900'}`}>
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className={`w-1 h-4 rounded-full transition-all ${i < stripes ? 'bg-white shadow-[0_0_5px_rgba(255,255,255,1)]' : 'bg-white/10'}`}
+              className={`w-1.5 h-6 rounded-full transition-all ${i < stripes ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'bg-white/10'}`}
             ></div>
           ))}
         </div>
-        <div className="w-2 h-full" style={{ backgroundColor: beltInfo.color }}>
+        <div className="w-4 h-full" style={{ backgroundColor: beltInfo.color }}>
           {beltInfo.secondaryColor && (
             <div className="w-full h-1/2 absolute top-1/4" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>
           )}
         </div>
       </button>
-      <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">{stripes} GRAUS</span>
+      <span className="text-[11px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest whitespace-nowrap">{stripes} GRAUS</span>
     </div>
   );
 };
@@ -101,6 +101,23 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   const [currentStripes, setCurrentStripes] = useState<number>(student?.stripes || 0);
   const [totalClasses, setTotalClasses] = useState<number>(student?.totalClassesAttended || 0);
   const [avatar, setAvatar] = useState(student?.avatar || '');
+
+  // Sincronização robusta quando o aluno muda (mesmo com a key no App.tsx)
+  useEffect(() => {
+    setName(student?.name || '');
+    setEmail(student?.email || '');
+    setPhone(student?.phone ? maskPhone(student.phone) : '');
+    setCpf(student?.cpf ? maskCPF(student.cpf) : '');
+    setBirthday(student?.birthday || '');
+    setStartDate(student?.startDate || new Date().toISOString().split('T')[0]);
+    setGraduationDate(student?.lastGraduationDate || new Date().toISOString().split('T')[0]);
+    setIsActive(student?.active ?? true);
+    setSelectedBelt(student?.belt || 'Faixa Branca');
+    setSelectedCategories(student?.categories || []);
+    setCurrentStripes(student?.stripes || 0);
+    setTotalClasses(student?.totalClassesAttended || 0);
+    setAvatar(student?.avatar || '');
+  }, [student]);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const handleAvatarClick = () => {
@@ -313,78 +330,75 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
 
   return (
     <div className="fixed inset-0 bg-white dark:bg-zinc-950 z-[60] flex flex-col animate-in fade-in duration-500 overflow-y-auto no-scrollbar lg:relative lg:inset-auto lg:min-h-screen lg:rounded-3xl lg:shadow-2xl">
-      {/* HEADER SECTION */}
-      <section className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-6 pt-12 relative overflow-hidden">
-        <div className="absolute top-4 left-4 z-10">
-          <button
-            onClick={onBack}
-            className="w-10 h-10 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center shadow-md hover:scale-110 active:scale-95 transition-all text-zinc-950 dark:text-white border border-zinc-100 dark:border-zinc-700"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m15 18-6-6 6-6" /></svg>
-          </button>
+      <header className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 sticky top-0 z-50 flex items-center justify-between">
+        <button
+          onClick={onBack}
+          className="w-10 h-10 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 transition-all text-zinc-950 dark:text-white border border-zinc-100 dark:border-zinc-700"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m15 18-6-6 6-6" /></svg>
+        </button>
+        <div className="text-right">
+          <p className="text-[8px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Gestão</p>
+          <h2 className="text-sm font-black italic tracking-tighter text-zinc-900 dark:text-white uppercase leading-none mt-1">Ossflow</h2>
         </div>
+      </header>
 
-        <div className="absolute top-4 right-4 z-10 text-right">
-          <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 leading-none uppercase tracking-widest">Gestão Técnica</p>
-          <div className="flex items-center gap-1.5 justify-end">
-            <h2 className="text-lg font-black italic tracking-tighter text-zinc-900 dark:text-white uppercase leading-none">Ossflow App</h2>
-            <span className="text-amber-500 font-black italic text-2xl leading-none">K</span>
-          </div>
-        </div>
-
-        <div className="max-w-4xl mx-auto flex flex-col items-center sm:flex-row sm:items-end gap-6 relative z-10 mt-4">
-          <div className="relative group">
-            <div
-              onClick={handleAvatarClick}
-              className="w-32 h-32 rounded-3xl bg-zinc-200 dark:bg-zinc-800 border-4 border-white dark:border-zinc-900 shadow-2xl overflow-hidden cursor-pointer group-hover:brightness-110 transition-all flex items-center justify-center"
-            >
-              {avatar ? (
-                <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-zinc-400 font-black text-2xl">
-                  {name ? name.substring(0, 2).toUpperCase() : '??'}
+      <main className="flex-1 max-w-4xl mx-auto w-full p-6 space-y-6 pb-80">
+        {/* NOVO CABEÇALHO INTEGRADO */}
+        <section className="flex flex-col gap-4 bg-zinc-50/50 dark:bg-zinc-900/50 p-5 -mx-4 sm:mx-0 sm:p-6 rounded-3xl border border-zinc-100 dark:border-zinc-800 shadow-sm">
+          <div className="flex items-center gap-5 sm:gap-6">
+            {/* FOTO/ICONE */}
+            <div className="relative shrink-0">
+              <div
+                onClick={handleAvatarClick}
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 shadow-lg overflow-hidden cursor-pointer hover:border-zinc-950 dark:hover:border-white transition-all flex items-center justify-center group"
+              >
+                {avatar ? (
+                  <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-900 text-zinc-300 dark:text-zinc-600">
+                    <Icons.User className="w-8 h-8 sm:w-10 sm:h-10 opacity-30" />
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase mt-1 tracking-widest">FOTO</span>
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <Icons.Plus className="text-white w-5 h-5" />
                 </div>
-              )}
-              {uploadingAvatar && (
-                <div className="absolute inset-0 bg-white/40 dark:bg-black/40 flex items-center justify-center">
-                  <div className="w-6 h-6 border-2 border-zinc-950 dark:border-white border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <Icons.Plus className="text-white" />
               </div>
+              <input
+                id="student-avatar-input"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
             </div>
-            <input
-              id="student-avatar-input"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-          </div>
 
-          <div className="flex-1 text-center sm:text-left space-y-2">
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">Dados do Aluno</span>
+            {/* NOME */}
+            <div className="flex-1 flex flex-col gap-1 min-w-0">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1">Nome do Aluno</span>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Nome do Aluno..."
-                className="bg-transparent text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white focus:outline-none placeholder:text-zinc-300 dark:placeholder:text-zinc-700 w-full"
+                placeholder="Nome do aluno..."
+                className="bg-white dark:bg-zinc-800 border-2 border-zinc-100 dark:border-zinc-700 rounded-2xl px-4 py-3 sm:py-4 text-lg sm:text-2xl font-black text-zinc-950 dark:text-white focus:outline-none focus:border-zinc-950 dark:focus:border-white transition-all placeholder:text-zinc-300 dark:placeholder:text-zinc-700 w-full shadow-sm"
               />
             </div>
+          </div>
+
+          {/* FAIXA (FULL WIDTH ABAIXO) */}
+          <div className="w-full pt-1 border-t border-zinc-200/50 dark:border-zinc-700/50">
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1 mb-1 block">Sua Faixa Atual</span>
             <BeltGraphicLarge
               beltName={selectedBelt}
               stripes={currentStripes}
               onClick={() => setActiveMenu('stripe')}
             />
           </div>
-        </div>
-      </section>
+        </section>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full p-6 space-y-12 pb-80">
         {/* QUICK ACTIONS */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
           <button
             onClick={() => setActiveMenu(activeMenu === 'belt' ? null : 'belt')}
             className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${activeMenu === 'belt'
@@ -532,21 +546,21 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         )}
 
         {/* EVOLUTION STATS */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-8 rounded-[40px] border border-zinc-200 dark:border-zinc-800 flex flex-col gap-2 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
-              <Icons.Award className="w-24 h-24" />
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 sm:p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800 flex flex-col gap-1 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-3 sm:p-5 opacity-5 group-hover:scale-110 transition-transform">
+              <Icons.Award className="w-10 h-10 sm:w-12 sm:h-12" />
             </div>
-            <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Treinos no Grau Atual</p>
-            <h3 className="text-5xl font-black text-zinc-900 dark:text-white leading-none">
+            <p className="text-[8px] sm:text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-tight">Treinos no Grau Atual</p>
+            <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white leading-none mt-1">
               {evolutionData.currentStripeProgress}<span className="text-zinc-300 dark:text-zinc-700">/{evolutionData.nextStripeGoal}</span>
             </h3>
-            <p className="text-xs font-bold text-zinc-500 mt-2">
+            <p className="text-[8px] sm:text-[9px] font-bold text-zinc-500 mt-1">
               {evolutionData.remainingForStripe > 0
-                ? `Faltam ${evolutionData.remainingForStripe} aulas para o próximo grau`
-                : "Apto para graduação!"}
+                ? `Faltam ${evolutionData.remainingForStripe} aulas`
+                : "Apto!"}
             </p>
-            <div className="mt-8 h-3 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden p-0.5">
+            <div className="mt-3 sm:mt-4 h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
               <div
                 className="h-full bg-zinc-950 dark:bg-white rounded-full transition-all duration-1000 ease-out"
                 style={{ width: `${evolutionData.progressPercent}%` }}
@@ -554,24 +568,24 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             </div>
           </div>
 
-          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-8 rounded-[40px] border border-zinc-200 dark:border-zinc-800 flex flex-col justify-center gap-2 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform text-amber-500">
-              <Icons.Star className="w-24 h-24" />
+          <div className="bg-zinc-50 dark:bg-zinc-900/50 p-4 sm:p-5 rounded-3xl border border-zinc-200 dark:border-zinc-800 flex flex-col justify-center gap-1 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 p-3 sm:p-5 opacity-5 group-hover:scale-110 transition-transform text-amber-500">
+              <Icons.Star className="w-10 h-10 sm:w-12 sm:h-12" />
             </div>
-            <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">Treinos Totais na Faixa</p>
-            <h3 className="text-5xl font-black text-zinc-900 dark:text-white leading-none">
+            <p className="text-[8px] sm:text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-tight">Treinos Totais na Faixa</p>
+            <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white leading-none mt-1">
               {totalClasses}<span className="text-zinc-300 dark:text-zinc-700">/{evolutionData.totalRequired}</span>
             </h3>
-            <p className="text-xs font-bold text-zinc-500 mt-2">Contagem histórica para troca de faixa</p>
-            <div className="mt-8 flex items-center gap-3">
-              <div className="flex -space-x-2">
+            <p className="text-[8px] sm:text-[9px] font-bold text-zinc-500 mt-1 whitespace-nowrap">Contagem histórica</p>
+            <div className="mt-3 sm:mt-4 flex items-center gap-2">
+              <div className="flex -space-x-1">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className={`w-8 h-8 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center ${i < currentStripes ? 'bg-amber-400' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
-                    <Icons.Award className={`w-3 h-3 ${i < currentStripes ? 'text-amber-950' : 'text-zinc-400'}`} />
+                  <div key={i} className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full border border-white dark:border-zinc-900 flex items-center justify-center ${i < currentStripes ? 'bg-amber-400' : 'bg-zinc-200 dark:bg-zinc-800'}`}>
+                    <Icons.Award className={`w-1.5 h-1.5 sm:w-2 sm:h-2 ${i < currentStripes ? 'text-amber-950' : 'text-zinc-400'}`} />
                   </div>
                 ))}
               </div>
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{currentStripes} Graus Conquistados</span>
+              <span className="text-[7px] sm:text-[8px] font-black text-zinc-400 uppercase tracking-widest">{currentStripes} G</span>
             </div>
           </div>
         </div>
