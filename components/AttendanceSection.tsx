@@ -44,6 +44,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
   const [loading, setLoading] = useState(true);
 
   const [selectedDate, setSelectedDate] = useState(getLocalDateString());
+  const [dailyLogs, setDailyLogs] = useState<{ class_id: string; student_id: string }[]>([]);
 
   const loadData = async (date: string = selectedDate) => {
     try {
@@ -60,6 +61,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
       const completed = new Set<string>();
       logsData.forEach(log => completed.add(log.class_id));
       setCompletedClasses(completed);
+      setDailyLogs(logsData);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -73,6 +75,16 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
 
   const [selectedClass, setSelectedClass] = useState<TrainingClass | null>(null);
   const [presentIds, setPresentIds] = useState<Set<string>>(new Set());
+
+  // Preencher dados ao selecionar aula
+  useEffect(() => {
+    if (selectedClass) {
+      const classLogs = dailyLogs.filter(log => log.class_id === selectedClass.id);
+      setPresentIds(new Set(classLogs.map(log => log.student_id)));
+    } else {
+      setPresentIds(new Set());
+    }
+  }, [selectedClass, dailyLogs]);
   const [searchTerm, setSearchTerm] = useState('');
   const [finished, setFinished] = useState(false);
   const [showAddClass, setShowAddClass] = useState(false);
@@ -117,7 +129,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
   };
 
   const handleFinish = async () => {
-    if (presentIds.size === 0 || !selectedClass) return;
+    if (!selectedClass) return;
 
     // Verificar se a data é futura
     const todayStr = new Date().toISOString().split('T')[0];
@@ -133,12 +145,11 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
       setFinished(true);
 
       // Atualizar lista local para refletir nos cards (opcional, já que vamos fechar a tela)
-      setStudents(prev => prev.map(s => {
-        if (presentIds.has(s.id)) {
-          return { ...s, totalClassesAttended: (s.totalClassesAttended || 0) + 1 };
-        }
-        return s;
-      }));
+      // Atualizar lista local para refletir nos cards (opcional, já que vamos fechar a tela)
+      // Como a contagem agora é recalculada no servidor, o ideal é não fazer update manual tosco aqui
+      // setStudents(prev => prev.map(s => ...)); 
+
+      await loadData(); // Recarrega para pegar contagens corretas
 
       setTimeout(() => {
         setFinished(false);
@@ -146,7 +157,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
         setPresentIds(new Set());
       }, 3000);
     } catch (error) {
-      alert('Erro ao registrar presenças');
+      alert('Erro ao registrar presenças. Verifique o console para mais detalhes.');
       console.error(error);
     }
   };
@@ -201,6 +212,29 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
     } catch (error) {
       alert('Erro ao criar horário');
       console.error(error);
+    }
+  };
+
+  const handleDeleteClass = async (classId: string, className: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+
+    const confirmed = window.confirm(
+      `⚠️ Tem certeza que deseja excluir o horário "${className}"?\n\nEsta ação não pode ser desfeita.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await ClassService.delete(classId);
+
+      // Remove from local state
+      setClasses(prev => prev.filter(c => c.id !== classId));
+
+      // Show success feedback
+      alert('✅ Horário excluído com sucesso!');
+    } catch (error) {
+      alert('❌ Erro ao excluir horário. Tente novamente.');
+      console.error('Delete error:', error);
     }
   };
 
@@ -380,14 +414,27 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
               const isCompleted = completedClasses.has(cls.id);
 
               return (
-                <button
+                <div
                   key={cls.id}
                   onClick={() => !isCompleted && setSelectedClass(cls)}
                   className={`group flex flex-col items-start p-6 bg-white rounded-3xl border transition-all text-left relative overflow-hidden ${isCompleted
                     ? 'border-zinc-100 bg-zinc-50/50 cursor-default'
-                    : 'border-zinc-100 shadow-sm hover:shadow-xl hover:border-zinc-950 active:scale-95'
+                    : 'border-zinc-100 shadow-sm hover:shadow-xl hover:border-zinc-950 active:scale-95 cursor-pointer'
                     }`}
                 >
+                  {/* Delete Button */}
+                  {!isCompleted && (
+                    <button
+                      onClick={(e) => handleDeleteClass(cls.id, cls.name, e)}
+                      className="absolute top-3 left-3 p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-500 hover:text-white transition-all active:scale-90 z-10 shadow-sm"
+                      title="Excluir horário"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" />
+                      </svg>
+                    </button>
+                  )}
+
                   <div className="absolute top-0 right-0 p-3">
                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${isCompleted
                       ? 'bg-emerald-500 text-white'
@@ -432,7 +479,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
                       </>
                     )}
                   </div>
-                </button>
+                </div>
               );
             })
           ) : (
@@ -528,7 +575,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
       <div className="fixed bottom-24 left-1/2 -translate-x-1/2 w-full max-w-md px-6 lg:left-auto lg:right-8 lg:translate-x-0 lg:bottom-8 z-50">
         <button
           onClick={handleFinish}
-          disabled={presentIds.size === 0}
+          disabled={false}
           className="w-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-5 rounded-3xl font-black uppercase tracking-[0.25em] text-xs shadow-2xl hover:bg-black dark:hover:bg-zinc-200 transition-all active:scale-95 disabled:opacity-20 disabled:active:scale-100 disabled:cursor-not-allowed group"
         >
           Finalizar Chamada

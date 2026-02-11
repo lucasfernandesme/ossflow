@@ -3,7 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { BELT_LEVELS, Icons } from '../constants';
 import { Student, TrainingClass } from '../types';
-import { getLocalDateString } from '../utils/dateUtils';
+import { getLocalDateString, formatLocalDisplayDate } from '../utils/dateUtils';
+import { useBelt } from '../contexts/BeltContext';
 
 const WEEKDAYS_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const WEEKDAYS_SHORT = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
@@ -13,6 +14,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
+  const { belts } = useBelt();
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const [classes, setClasses] = useState<TrainingClass[]>([]);
@@ -95,21 +97,29 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
   }, [classes, selectedDayOfWeek]);
 
-  // Contagem de Alunos Prontos para Graduação (apenas para exibição numérica)
   const eligibleCount = useMemo(() => {
-    const today = getLocalDateString();
+    if (belts.length === 0) return 0;
     return students.filter(student => {
-      // Se graduou hoje, não contar como elegível
-      if (student.lastGraduationDate === today) return false;
+      const studentBelt = (student.belt || '').trim();
+      const beltCriteria = belts.find(b => b.name === studentBelt || b.name.includes(studentBelt)) || belts[0];
+      if (!beltCriteria) return false;
 
-      const beltCriteria = BELT_LEVELS.find(b => b.name.includes(student.belt)) || BELT_LEVELS[13];
-      const nextStripeThreshold = (student.stripes + 1) * beltCriteria.freq;
-      const nextBeltThreshold = beltCriteria.aulas;
+      // Ensure numbers
+      const freqReq = Number(beltCriteria.freqReq) || 0;
+      const stripeReq = freqReq > 0 ? freqReq : 1;
+      const classesReqTotal = Number(beltCriteria.classesReq) || 0;
+      const totalClasses = Number(student.totalClassesAttended) || 0;
+      const stripes = Number(student.stripes) || 0;
 
-      return (student.stripes < 4 && student.totalClassesAttended >= nextStripeThreshold) ||
-        (student.stripes >= 4 && student.totalClassesAttended >= nextBeltThreshold);
+      if (stripes < 4) {
+        return totalClasses >= stripeReq;
+      } else {
+        const classesForStripes = 4 * stripeReq;
+        const finalLegGoal = Math.max(stripeReq, classesReqTotal - classesForStripes);
+        return totalClasses >= finalLegGoal;
+      }
     }).length;
-  }, [students]);
+  }, [students, belts]);
 
   const studentsPresentToday = useMemo(() => {
     const today = getLocalDateString();
@@ -286,7 +296,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
                   <p className="text-xs lg:text-sm font-bold text-zinc-950 dark:text-white truncate">{student.name}</p>
                   <p className="text-[10px] text-zinc-500 dark:text-zinc-400 uppercase font-bold tracking-tighter">{student.belt}</p>
                 </div>
-                <span className="text-[10px] text-zinc-400 font-bold whitespace-nowrap">{student.lastAttendance ? new Date(student.lastAttendance).toLocaleDateString('pt-BR') : '-'}</span>
+                <span className="text-[10px] text-zinc-400 font-bold whitespace-nowrap">{student.lastAttendance ? formatLocalDisplayDate(student.lastAttendance) : '-'}</span>
               </div>
             ))}
           </div>

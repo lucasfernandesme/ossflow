@@ -90,52 +90,116 @@ export const StudentService = {
     },
 
     async registerBatchAttendance(studentIds: string[], classId: string, date: string) {
-        if (!studentIds.length) return;
-
+        // Obter usuário logado
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("Usuário não autenticado");
 
-        // Fetch current counts
-        const { data: students, error: fetchError } = await supabase
-            .from('students')
-            .select('id, total_classes_attended')
-            .in('id', studentIds);
+        // 1. Buscar logs existentes para evitar duplicatas e identificar remoções
+        const { data: existingLogs, error: fetchError } = await supabase
+            .from('attendance_logs')
+            .select('student_id')
+            .eq('class_id', classId)
+            .eq('attendance_date', date);
 
         if (fetchError) throw fetchError;
 
-        // 1. Insert attendance logs
-        const logs = studentIds.map(sid => ({
-            user_id: user.id,
-            student_id: sid,
-            class_id: classId,
-            attendance_date: date
-        }));
+        const existingSet = new Set(existingLogs?.map(l => l.student_id) || []);
+        const currentSet = new Set(studentIds);
 
-        const { error: logError } = await supabase
-            .from('attendance_logs')
-            .upsert(logs, { onConflict: 'student_id,class_id,attendance_date' });
+        // Identificar diferenças
+        const toAdd = studentIds.filter(id => !existingSet.has(id));
+        const toRemove = Array.from(existingSet).filter(id => !currentSet.has(id));
 
-        if (logError) throw logError;
+        // 2. PROCESSAR TODAS AS ALTERAÇÕES (ADD/REMOVE)
 
-        // 2. Update student counts
-        const errors = [];
-        for (const s of students) {
-            const { error } = await supabase
+        // Executar operações de log (Mantemos os logs como fonte de verdade para o calendário/histórico futuro)
+        if (toRemove.length > 0) {
+            const { error: deleteError } = await supabase.from('attendance_logs')
+                .delete()
+                .eq('class_id', classId)
+                .eq('attendance_date', date)
+                .in('student_id', toRemove);
+            if (deleteError) throw deleteError;
+        }
+
+        if (toAdd.length > 0) {
+            const logs = toAdd.map(sid => ({
+                user_id: user.id,
+                student_id: sid,
+                class_id: classId,
+                attendance_date: date
+            }));
+            const { error: insertError } = await supabase.from('attendance_logs').upsert(logs);
+            if (insertError) throw insertError;
+        }
+
+        // 3. ATUALIZAR CONTADORES (INCREMENTALMENTE)
+        // IMPORTANTE: Não podemos usar count(*) da tabela de logs porque pode haver dados legados
+        // que não possuem logs correspondentes. Usamos incremento/decremento para preservar o histórico.
+
+        const errors: any[] = [];
+
+        // Decrementar para quem foi removido
+        for (const studentId of toRemove) {
+            // Buscar aluno atual
+            const { data: student, error: fetchError } = await supabase
                 .from('students')
-                .update({
-                    total_classes_attended: (s.total_classes_attended || 0) + 1,
-                    last_attendance: date
-                })
-                .eq('id', s.id);
+                .select('total_classes_attended')
+                .eq('id', studentId)
+                .single();
 
-            if (error) {
-                console.error(`Erro ao atualizar aluno ${s.id}:`, error);
-                errors.push(error);
+            if (fetchError || !student) {
+                if (fetchError) errors.push(fetchError);
+                continue;
             }
+
+            const currentTotal = student.total_classes_attended || 0;
+            const newTotal = Math.max(0, currentTotal - 1);
+
+            const { error: updateError } = await supabase
+                .from('students')
+                .update({ total_classes_attended: newTotal })
+                .eq('id', studentId);
+
+            if (updateError) errors.push(updateError);
+        }
+
+        // Incrementar para quem foi adicionado
+        for (const studentId of toAdd) {
+            // Buscar aluno atual
+            const { data: student, error: fetchError } = await supabase
+                .from('students')
+                .select('total_classes_attended, last_attendance')
+                .eq('id', studentId)
+                .single();
+
+            if (fetchError || !student) {
+                if (fetchError) errors.push(fetchError);
+                continue;
+            }
+
+            const currentTotal = student.total_classes_attended || 0;
+            const newTotal = currentTotal + 1;
+
+            const updatePayload: any = { total_classes_attended: newTotal };
+
+            // Check date validity for last_attendance update
+            const currentLast = student.last_attendance;
+            if (date && (!currentLast || date >= currentLast)) {
+                updatePayload.last_attendance = date;
+            }
+
+            const { error: updateError } = await supabase
+                .from('students')
+                .update(updatePayload)
+                .eq('id', studentId);
+
+            if (updateError) errors.push(updateError);
         }
 
         if (errors.length > 0) {
-            throw new Error(`Falha ao atualizar ${errors.length} alunos.`);
+            console.error("Erros ao sincronizar contadores:", errors);
+            // Não lançamos erro fatal aqui para não "desfazer" os logs que já foram salvos
         }
     },
 

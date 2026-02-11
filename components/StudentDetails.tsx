@@ -93,8 +93,8 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   const [phone, setPhone] = useState(student?.phone || '');
   const [cpf, setCpf] = useState(student?.cpf || '');
   const [birthday, setBirthday] = useState(student?.birthday || '');
-  const [startDate, setStartDate] = useState(student?.startDate || new Date().toISOString().split('T')[0]);
-  const [graduationDate, setGraduationDate] = useState(student?.lastGraduationDate || new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(student?.startDate || getLocalDateString());
+  const [graduationDate, setGraduationDate] = useState(student?.lastGraduationDate || getLocalDateString());
   const [isActive, setIsActive] = useState(student?.active ?? true);
   const [selectedBelt, setSelectedBelt] = useState<string>(student?.belt || 'Faixa Branca');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(student?.categories || []);
@@ -109,8 +109,8 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
     setPhone(student?.phone ? maskPhone(student.phone) : '');
     setCpf(student?.cpf ? maskCPF(student.cpf) : '');
     setBirthday(student?.birthday || '');
-    setStartDate(student?.startDate || new Date().toISOString().split('T')[0]);
-    setGraduationDate(student?.lastGraduationDate || new Date().toISOString().split('T')[0]);
+    setStartDate(student?.startDate || getLocalDateString());
+    setGraduationDate(student?.lastGraduationDate || getLocalDateString());
     setIsActive(student?.active ?? true);
     setSelectedBelt(student?.belt || 'Faixa Branca');
     setSelectedCategories(student?.categories || []);
@@ -170,12 +170,12 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   const [showBeltEditModal, setShowBeltEditModal] = useState(false);
   const [editingBelt, setEditingBelt] = useState<any>(null);
   const [draftStripes, setDraftStripes] = useState<number>(student?.stripes || 0);
-  const [draftGraduationDate, setDraftGraduationDate] = useState<string>(student?.lastGraduationDate || new Date().toISOString().split('T')[0]);
+  const [draftGraduationDate, setDraftGraduationDate] = useState<string>(student?.lastGraduationDate || getLocalDateString());
 
   useEffect(() => {
     if (activeMenu === 'stripe') {
       setDraftStripes(currentStripes);
-      setDraftGraduationDate(graduationDate);
+      setDraftGraduationDate(getLocalDateString());
     }
   }, [activeMenu, currentStripes, graduationDate]);
 
@@ -186,43 +186,102 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
       remainingForStripe: 0,
       remainingForGraduation: 0,
       totalRequired: 0,
-      progressPercent: 0
+      progressPercent: 0,
+      currentStripeProgress: 0,
+      isReadyForBelt: false
     };
 
-    const beltInfo = belts.find(b => b.name === selectedBelt || b.name.includes(selectedBelt)) || belts[0];
+    const normalizedSelected = selectedBelt.trim().toLowerCase();
+    const beltInfo = belts.find(b => b.name.trim().toLowerCase() === normalizedSelected) ||
+      belts.find(b => {
+        const normalizedName = b.name.trim().toLowerCase();
+        return normalizedName.includes(normalizedSelected) || normalizedSelected.includes(normalizedName);
+      }) || belts[0];
 
     // Fallback if still not found
     if (!beltInfo) return {
-      nextStripeGoal: 0, remainingForStripe: 0, remainingForGraduation: 0, totalRequired: 0, progressPercent: 0
+      nextStripeGoal: 0, remainingForStripe: 0, remainingForGraduation: 0, totalRequired: 0, progressPercent: 0, currentStripeProgress: 0, isReadyForBelt: false
     };
 
-    const isReadyForBelt = currentStripes >= 4;
+    const stripesNum = Number(currentStripes) || 0;
+    const totalClassesNum = Number(totalClasses) || 0;
+    const isReadyForBelt = stripesNum >= 4;
 
     // Meta para o próximo grau (individual, conforme configurado)
-    const stripeStepGoal = beltInfo.freqReq;
+    // Garante que não seja zero para evitar erro de divisão/display
+    const stripeReq = Number(beltInfo.freqReq);
+    const stripeStepGoal = stripeReq > 0 ? stripeReq : 1;
 
-    // Aulas acumuladas para o PRÓXIMO grau específico
-    const currentStripeProgress = isReadyForBelt
-      ? totalClasses
-      : Math.max(0, totalClasses - (currentStripes * beltInfo.freqReq));
+    let currentStripeProgress = 0;
+    let remainingForStripe = 0;
 
-    const remainingForStripe = isReadyForBelt
-      ? 0
-      : Math.max(0, stripeStepGoal - currentStripeProgress);
+    // Meta para a próxima faixa (HOISTED)
+    const classesReqTotal = Number(beltInfo.classesReq) || 0;
+    // Cálculo de Total Virtual para "Remaining da Faixa"
+    const virtualTotalClasses = (stripesNum * stripeStepGoal) + totalClassesNum;
+    const remainingForGraduation = Math.max(0, classesReqTotal - virtualTotalClasses);
 
-    // Meta para a próxima faixa
-    const remainingForGraduation = Math.max(0, beltInfo.classesReq - totalClasses);
+    // Lógica DEFINITIVA de CONTADOR (Simplificada)
+    // O sistema agora trata "totalClasses" como um contador que reseta a cada grau.
+    // O progresso visual é sempre EXATAMENTE o que está no contador.
+    currentStripeProgress = totalClassesNum;
 
-    // Porcentagem para a barra de progresso (baseada no objetivo imediato)
-    const displayGoal = isReadyForBelt ? beltInfo.classesReq : stripeStepGoal;
-    const progressPercent = Math.min(100, (currentStripeProgress / displayGoal) * 100);
+    if (isReadyForBelt) {
+      // Se já tem 4 graus (Apto para Faixa), a meta é o que FALTA para a faixa.
+      // Ex: Faixa exige 50. Graus exigem 10 cada (40 total). Falta 10.
+      // O contador zerou ao ganhar o 4º grau, então ele começa de 0/10.
+      const classesForStripes = 4 * stripeStepGoal;
+      // Meta do último passo: Total da Faixa - 40, ou o padrão do grau se for maior.
+      const finalLegGoal = Math.max(stripeStepGoal, classesReqTotal - classesForStripes);
+
+      remainingForStripe = Math.max(0, finalLegGoal - currentStripeProgress);
+    } else {
+      // Graus normais (0, 1, 2, 3)
+      // Meta é sempre o passo do grau (ex: 10).
+      // Se passar da meta (ex: 12/10), faltam 0 aulas (mas mostra 12/10).
+      remainingForStripe = Math.max(0, stripeStepGoal - currentStripeProgress);
+    }
+
+
+
+
+
+    // Porcentagem para a barra de progresso
+    // Se estiver apto para faixa, a meta visual deve ser apenas o que FALTA para a faixa,
+    // e não o total acumulado desde a faixa branca.
+    let displayGoal = stripeStepGoal;
+
+    if (isReadyForBelt) {
+      // Ex: Faixa exige 50. Graus exigem 10 cada (40 total). Falta 10.
+      // Se o aluno zerou as aulas (porque ganhou o 4º grau), ele tem 0 aulas.
+      // A meta deve ser 10, não 50.
+      const classesForStripes = 4 * stripeStepGoal;
+      displayGoal = Math.max(stripeStepGoal, classesReqTotal - classesForStripes);
+    }
+
+    // Ajuste visual para barra de progresso
+    let progressPercent = 0;
+    if (displayGoal > 0) {
+      if (isReadyForBelt) {
+        // Se estiver pronto para faixa, o progresso é (Total / MetaRestante)
+        progressPercent = Math.min(100, (totalClassesNum / displayGoal) * 100);
+      } else {
+        // Se já passou da meta, trava em 100%
+        if (totalClassesNum >= ((stripesNum + 1) * stripeStepGoal)) {
+          progressPercent = 100;
+        } else {
+          progressPercent = Math.min(100, (currentStripeProgress / displayGoal) * 100);
+        }
+      }
+    }
 
     return {
-      nextStripeGoal: isReadyForBelt ? beltInfo.classesReq : stripeStepGoal,
+      nextStripeGoal: displayGoal,
       currentStripeProgress,
       remainingForStripe,
       remainingForGraduation,
-      totalRequired: beltInfo.classesReq,
+      totalRequired: classesReqTotal,
+      virtualTotalClasses,
       progressPercent,
       isReadyForBelt
     };
@@ -284,7 +343,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         birthday,
         startDate,
         lastGraduationDate: graduationDate,
-        lastAttendance: student?.lastAttendance || new Date().toISOString().split('T')[0]
+        lastAttendance: student?.lastAttendance || getLocalDateString()
       };
 
       if (student?.id) {
@@ -325,8 +384,6 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
       }
     }
   };
-
-
 
   return (
     <div className="fixed inset-0 bg-white dark:bg-zinc-950 z-[60] flex flex-col animate-in fade-in duration-500 overflow-y-auto no-scrollbar lg:relative lg:inset-auto lg:min-h-screen lg:rounded-3xl lg:shadow-2xl">
@@ -444,7 +501,12 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
               {belts.map((belt) => (
                 <button
                   key={belt.id}
-                  onClick={() => { setSelectedBelt(belt.name); setActiveMenu(null); }}
+                  onClick={() => {
+                    setSelectedBelt(belt.name);
+                    setCurrentStripes(0);
+                    setTotalClasses(0);
+                    setActiveMenu(null);
+                  }}
                   className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${selectedBelt === belt.name
                     ? 'bg-zinc-950 dark:bg-white border-transparent text-white dark:text-zinc-950 shadow-lg'
                     : 'bg-white dark:bg-zinc-800/50 border-zinc-100 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 text-zinc-600 dark:text-zinc-400'
@@ -473,24 +535,6 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             </div>
             <div className="space-y-8">
               <div className="flex flex-col gap-3">
-                <label className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Quantidade de Graus</label>
-                <div className="flex gap-2">
-                  {[0, 1, 2, 3, 4].map((stripe) => (
-                    <button
-                      key={stripe}
-                      onClick={() => setDraftStripes(stripe)}
-                      className={`flex-1 py-4 rounded-2xl font-black text-lg transition-all border ${draftStripes === stripe
-                        ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-transparent shadow-lg'
-                        : 'bg-white dark:bg-zinc-800 text-zinc-400 border-zinc-100 dark:border-zinc-700 hover:border-zinc-300'
-                        }`}
-                    >
-                      {stripe}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-3">
                 <label className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Data da Graduação</label>
                 <input
                   type="date"
@@ -502,13 +546,19 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
 
               <button
                 onClick={() => {
-                  setCurrentStripes(draftStripes);
+                  const nextStripe = Math.min(4, currentStripes + 1);
+                  setCurrentStripes(nextStripe);
                   setGraduationDate(draftGraduationDate);
+                  // Manter o saldo de aulas ao graduar (incrementar grau)
+                  if (nextStripe > currentStripes) {
+                    const balance = Math.max(0, totalClasses - (evolutionData.nextStripeGoal || 0));
+                    setTotalClasses(balance);
+                  }
                   setActiveMenu(null);
                 }}
                 className="w-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl active:scale-95 transition-all"
               >
-                Confirmar Graduação
+                Confirmar Graduação (+1 Grau)
               </button>
             </div>
           </div>
@@ -574,7 +624,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             </div>
             <p className="text-[8px] sm:text-[9px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-tight">Treinos Totais na Faixa</p>
             <h3 className="text-xl sm:text-2xl font-black text-zinc-900 dark:text-white leading-none mt-1">
-              {totalClasses}<span className="text-zinc-300 dark:text-zinc-700">/{evolutionData.totalRequired}</span>
+              {evolutionData.virtualTotalClasses}<span className="text-zinc-300 dark:text-zinc-700">/{evolutionData.totalRequired}</span>
             </h3>
             <p className="text-[8px] sm:text-[9px] font-bold text-zinc-500 mt-1 whitespace-nowrap">Contagem histórica</p>
             <div className="mt-3 sm:mt-4 flex items-center gap-2">
