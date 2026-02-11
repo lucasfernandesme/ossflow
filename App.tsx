@@ -209,6 +209,39 @@ const AuthenticatedApp: React.FC = () => {
                   Relatórios
                 </button>
 
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    setActiveTab('belts');
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
+                  Faixas
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    setActiveTab('billing');
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                  Financeiro
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    setActiveTab('assistant');
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" /><path d="M12 16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2z" /><path d="M2 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" /><path d="M16 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" /><rect x="7" y="7" width="10" height="10" rx="3" /></svg>
+                  AI Assistant
+                </button>
+
                 <div className="border-t border-zinc-100 dark:border-zinc-800 mt-1 pt-1">
                   <button
                     onClick={() => {
