@@ -1,6 +1,6 @@
 
 import { supabase } from './supabase';
-import { Student } from '../types';
+import { Student, StudentHistory } from '../types';
 
 export const StudentService = {
     async getAll() {
@@ -19,6 +19,7 @@ export const StudentService = {
             paymentStatus: s.payment_status,
             startDate: s.start_date,
             lastGraduationDate: s.last_graduation_date,
+            isInstructor: s.is_instructor,
         })) as Student[];
     },
 
@@ -43,6 +44,7 @@ export const StudentService = {
             start_date: student.startDate || null,
             last_attendance: student.lastAttendance || null,
             last_graduation_date: student.lastGraduationDate || null,
+            is_instructor: student.isInstructor || false,
         };
 
         const { data, error } = await supabase
@@ -65,6 +67,8 @@ export const StudentService = {
         if (updates.startDate !== undefined) payload.start_date = updates.startDate || null;
         if (updates.lastGraduationDate !== undefined) payload.last_graduation_date = updates.lastGraduationDate || null;
 
+        if (updates.isInstructor !== undefined) payload.is_instructor = updates.isInstructor;
+
         // Handle other potentially empty string date/text fields
         if (payload.birthday === '') payload.birthday = null;
         if (payload.email === '') payload.email = null;
@@ -77,6 +81,7 @@ export const StudentService = {
         delete payload.paymentStatus;
         delete payload.startDate;
         delete payload.lastGraduationDate;
+        delete payload.isInstructor;
 
         const { data, error } = await supabase
             .from('students')
@@ -236,6 +241,37 @@ export const StudentService = {
             .from('students')
             .delete()
             .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    async getHistory(studentId: string): Promise<StudentHistory[]> {
+        const { data, error } = await supabase
+            .from('student_history')
+            .select('*')
+            .eq('student_id', studentId)
+            .order('date', { ascending: false });
+
+        if (error) throw error;
+
+        return data.map((h: any) => ({
+            id: h.id,
+            studentId: h.student_id,
+            type: h.type,
+            item: h.item,
+            date: h.date,
+        }));
+    },
+
+    async addHistory(studentId: string, type: 'belt' | 'stripe', item: string, date: string) {
+        const { error } = await supabase
+            .from('student_history')
+            .insert([{
+                student_id: studentId,
+                type,
+                item,
+                date,
+            }]);
 
         if (error) throw error;
     }

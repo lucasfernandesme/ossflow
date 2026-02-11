@@ -16,19 +16,19 @@ const VideoSection: React.FC = () => {
   });
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
 
-  const getEmbedUrl = (url: string) => {
+  const getYouTubeId = (url: string) => {
     try {
-      // Regex robustness for various YouTube URL formats
       const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
       const match = url.match(regExp);
-
-      if (match && match[2].length === 11) {
-        return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
-      }
-      return url;
+      return (match && match[2].length === 11) ? match[2] : null;
     } catch (e) {
-      return url;
+      return null;
     }
+  };
+
+  const getEmbedUrl = (url: string) => {
+    const videoId = getYouTubeId(url);
+    return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1` : url;
   };
 
   useEffect(() => {
@@ -51,12 +51,21 @@ const VideoSection: React.FC = () => {
     if (!newVideo.title) return;
 
     try {
+      let thumbnail = `https://picsum.photos/seed/${Date.now()}/400/225`; // Fallback
+
+      if (newVideo.type === 'youtube') {
+        const videoId = getYouTubeId(newVideo.url);
+        if (videoId) {
+          thumbnail = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        }
+      }
+
       const created = await VideoService.create({
         title: newVideo.title,
         category: newVideo.category,
         type: newVideo.type,
         url: newVideo.url,
-        thumbnail: `https://picsum.photos/seed/${Date.now()}/400/225`, // Placeholder por enquanto
+        thumbnail,
         duration: '00:00' // Placeholder por enquanto
       });
 
@@ -66,6 +75,19 @@ const VideoSection: React.FC = () => {
     } catch (error) {
       alert('Erro ao postar vídeo');
       console.error(error);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm('Tem certeza que deseja excluir este vídeo?')) return;
+
+    try {
+      await VideoService.delete(id);
+      setVideos(videos.filter(v => v.id !== id));
+    } catch (error) {
+      console.error('Erro ao excluir vídeo:', error);
+      alert('Erro ao excluir vídeo.');
     }
   };
 
@@ -182,6 +204,17 @@ const VideoSection: React.FC = () => {
               <span className="absolute top-2 left-2 bg-zinc-950/90 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-white/20">
                 {video.category}
               </span>
+              <button
+                onClick={(e) => handleDelete(e, video.id)}
+                className="absolute top-2 right-2 bg-red-500/90 hover:bg-red-600 text-white p-1.5 rounded-full transition-colors z-20"
+                title="Excluir vídeo"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18" />
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                </svg>
+              </button>
             </div>
             <div className="p-4">
               <h4 className="font-bold text-zinc-950 leading-tight group-hover:underline line-clamp-2">{video.title}</h4>

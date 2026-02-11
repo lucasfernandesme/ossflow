@@ -22,6 +22,14 @@ export interface BeltInfo {
   special?: string;
 }
 
+export interface StudentHistory {
+  id: string;
+  studentId: string;
+  type: 'belt' | 'stripe';
+  item: string;
+  date: string;
+}
+
 export interface Student {
   id: string;
   name: string;
@@ -40,6 +48,7 @@ export interface Student {
   birthday?: string;
   startDate?: string;
   lastGraduationDate?: string;
+  isInstructor?: boolean;
 }
 
 export interface TrainingClass {

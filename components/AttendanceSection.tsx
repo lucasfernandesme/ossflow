@@ -102,7 +102,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
     name: '',
     startTime: '',
     endTime: '',
-    instructor: 'Sensei Silva',
+    instructor: '',
     type: 'Gi' as 'Gi' | 'No-Gi',
     targetCategory: '',
     days: [selectedDayOfWeek] as number[]
@@ -120,6 +120,10 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
       s.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [selectedClass, searchTerm, students]);
+
+  const instructors = useMemo(() => {
+    return students.filter(s => s.isInstructor);
+  }, [students]);
 
   const toggleStudent = (id: string) => {
     const next = new Set(presentIds);
@@ -175,6 +179,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
     if (!newClass.startTime) currentErrors.push('startTime');
     if (!newClass.endTime) currentErrors.push('endTime');
     if (!newClass.targetCategory) currentErrors.push('targetCategory');
+    if (!newClass.instructor.trim()) currentErrors.push('instructor');
     if (newClass.days.length === 0) currentErrors.push('days');
 
     if (currentErrors.length > 0) {
@@ -202,7 +207,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
         name: '',
         startTime: '',
         endTime: '',
-        instructor: 'Sensei Silva',
+        instructor: '',
         type: 'Gi',
         targetCategory: '',
         days: [selectedDayOfWeek]
@@ -314,6 +319,25 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
                   value={newClass.name}
                   onChange={(e) => { setNewClass({ ...newClass, name: e.target.value }); if (errors.includes('name')) setErrors(errors.filter(er => er !== 'name')); }}
                 />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase text-zinc-400">Nome do Instrutor</label>
+                <select
+                  className={`w-full px-4 py-3 rounded-xl border text-sm font-bold bg-zinc-50 transition-all text-zinc-900 ${errors.includes('instructor') ? 'border-red-500 bg-red-50 ring-2 ring-red-100' : 'border-zinc-200'}`}
+                  value={newClass.instructor}
+                  onChange={(e) => { setNewClass({ ...newClass, instructor: e.target.value }); if (errors.includes('instructor')) setErrors(errors.filter(er => er !== 'instructor')); }}
+                >
+                  <option value="" disabled className="text-zinc-400">Selecione o Instrutor...</option>
+                  {instructors.map(inst => (
+                    <option key={inst.id} value={inst.name} className="text-zinc-900">{inst.name}</option>
+                  ))}
+                </select>
+                {instructors.length === 0 && (
+                  <p className="text-[9px] text-zinc-400 mt-1">
+                    Nenhum instrutor encontrado. Cadastre um aluno como instrutor primeiro.
+                  </p>
+                )}
               </div>
 
               <div className="space-y-1">

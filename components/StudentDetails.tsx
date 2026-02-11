@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Student, Belt } from '../types';
+import { Student, Belt, StudentHistory } from '../types';
 import { StudentService } from '../services/studentService';
 import { supabase } from '../services/supabase';
 import { useBelt } from '../contexts/BeltContext';
@@ -96,6 +96,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   const [startDate, setStartDate] = useState(student?.startDate || getLocalDateString());
   const [graduationDate, setGraduationDate] = useState(student?.lastGraduationDate || getLocalDateString());
   const [isActive, setIsActive] = useState(student?.active ?? true);
+  const [isInstructor, setIsInstructor] = useState(student?.isInstructor ?? false);
   const [selectedBelt, setSelectedBelt] = useState<string>(student?.belt || 'Faixa Branca');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(student?.categories || []);
   const [currentStripes, setCurrentStripes] = useState<number>(student?.stripes || 0);
@@ -112,6 +113,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
     setStartDate(student?.startDate || getLocalDateString());
     setGraduationDate(student?.lastGraduationDate || getLocalDateString());
     setIsActive(student?.active ?? true);
+    setIsInstructor(student?.isInstructor ?? false);
     setSelectedBelt(student?.belt || 'Faixa Branca');
     setSelectedCategories(student?.categories || []);
     setCurrentStripes(student?.stripes || 0);
@@ -171,13 +173,35 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   const [editingBelt, setEditingBelt] = useState<any>(null);
   const [draftStripes, setDraftStripes] = useState<number>(student?.stripes || 0);
   const [draftGraduationDate, setDraftGraduationDate] = useState<string>(student?.lastGraduationDate || getLocalDateString());
+  const [draftBelt, setDraftBelt] = useState<string>(student?.belt || 'Faixa Branca');
+
+  // History State
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<StudentHistory[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const fetchHistory = async () => {
+    if (!student?.id) return;
+    setLoadingHistory(true);
+    try {
+      const data = await StudentService.getHistory(student.id);
+      setHistory(data);
+    } catch (err) {
+      console.error("Failed to fetch history", err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   useEffect(() => {
     if (activeMenu === 'stripe') {
       setDraftStripes(currentStripes);
       setDraftGraduationDate(getLocalDateString());
+    } else if (activeMenu === 'belt') {
+      setDraftBelt(selectedBelt);
+      setDraftGraduationDate(getLocalDateString());
     }
-  }, [activeMenu, currentStripes, graduationDate]);
+  }, [activeMenu, currentStripes, graduationDate, selectedBelt]);
 
   // Cálculos de Evolução
   const evolutionData = useMemo(() => {
@@ -333,6 +357,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         belt: selectedBelt as Belt,
         stripes: currentStripes,
         active: isActive,
+        isInstructor,
         paymentStatus: student?.paymentStatus || 'paid',
         avatar,
         categories: selectedCategories,
@@ -348,6 +373,21 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
 
       if (student?.id) {
         await StudentService.update(student.id, studentData);
+
+        // Record History if changed
+        if (student.belt !== selectedBelt) {
+          await StudentService.addHistory(student.id, 'belt', selectedBelt, graduationDate);
+        } else if (student.stripes !== currentStripes) {
+          // Only log stripe if it changed (and belt didn't, or belt change handles reset implicitly)
+          // Simple approach: Log stripe change if it's different.
+          // If promoted to new belt, stripes become 0. We might not want to log "0 stripes".
+          // If we just added a stripe (e.g. 1 -> 2), log it.
+          // FIX: Include the belt name in the history item for accuracy.
+          if (currentStripes > 0) {
+            await StudentService.addHistory(student.id, 'stripe', `${selectedBelt} - ${currentStripes}º Grau`, graduationDate);
+          }
+        }
+
       } else {
         await StudentService.create(studentData);
       }
@@ -455,37 +495,47 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         </section>
 
         {/* QUICK ACTIONS */}
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+        <div className="flex flex-nowrap gap-1 pt-2 border-t border-zinc-100 dark:border-zinc-800">
           <button
             onClick={() => setActiveMenu(activeMenu === 'belt' ? null : 'belt')}
-            className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${activeMenu === 'belt'
+            className={`flex-1 px-2 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap border ${activeMenu === 'belt'
               ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-transparent shadow-lg'
               : 'bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
               }`}
           >
-            <Icons.Plus className="w-3.5 h-3.5" />
+            <Icons.Plus className="w-3 h-3" />
             Faixa
           </button>
           <button
             onClick={() => setActiveMenu(activeMenu === 'stripe' ? null : 'stripe')}
-            className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${activeMenu === 'stripe'
+            className={`flex-1 px-2 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap border ${activeMenu === 'stripe'
               ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-transparent shadow-lg'
               : 'bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
               }`}
           >
-            <Icons.Award className="w-3.5 h-3.5" />
+            <Icons.Award className="w-3 h-3" />
             Grau
           </button>
           <button
             onClick={() => setActiveMenu(activeMenu === 'categories' ? null : 'categories')}
-            className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${activeMenu === 'categories'
+            className={`flex-1 px-2 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap border ${activeMenu === 'categories'
               ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 border-transparent shadow-lg'
               : 'bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600'
               }`}
           >
-            <Icons.Filter className="w-3.5 h-3.5" />
-            Categorias ({selectedCategories.length})
+            <Icons.Filter className="w-3 h-3" />
+            Cats. ({selectedCategories.length})
           </button>
+          {/* Evolution Button */}
+          {student?.id && (
+            <button
+              onClick={() => { setShowHistory(true); fetchHistory(); }}
+              className={`flex-1 px-2 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap border bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600`}
+            >
+              <Icons.History className="w-3 h-3" />
+              Evolução
+            </button>
+          )}
         </div>
 
         {/* OVERLAYS */}
@@ -497,30 +547,55 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                 <Icons.X />
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[400px] overflow-y-auto pr-2 no-scrollbar">
-              {belts.map((belt) => (
-                <button
-                  key={belt.id}
-                  onClick={() => {
-                    setSelectedBelt(belt.name);
-                    setCurrentStripes(0);
-                    setTotalClasses(0);
-                    setActiveMenu(null);
-                  }}
-                  className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${selectedBelt === belt.name
-                    ? 'bg-zinc-950 dark:bg-white border-transparent text-white dark:text-zinc-950 shadow-lg'
-                    : 'bg-white dark:bg-zinc-800/50 border-zinc-100 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 text-zinc-600 dark:text-zinc-400'
-                    }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-5 rounded border border-black/10 relative overflow-hidden" style={{ backgroundColor: belt.color }}>
-                      {belt.secondaryColor && <div className="absolute inset-0 top-1/2" style={{ backgroundColor: belt.secondaryColor }}></div>}
+            {/* DATE PICKER & CONFIRM - FIXED AT TOP */}
+            <div className="flex flex-col gap-4 mb-6 pb-6 border-b border-zinc-100 dark:border-zinc-800">
+              <div className="flex flex-col gap-2">
+                <label className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1">Data da Graduação</label>
+                <input
+                  type="date"
+                  value={draftGraduationDate}
+                  onChange={(e) => setDraftGraduationDate(e.target.value)}
+                  className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl px-6 py-4 text-zinc-950 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-700 w-full"
+                />
+              </div>
+
+              <button
+                onClick={() => {
+                  setSelectedBelt(draftBelt);
+                  setGraduationDate(draftGraduationDate);
+                  setCurrentStripes(0);
+                  setTotalClasses(0);
+                  setActiveMenu(null);
+                }}
+                className="w-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl active:scale-95 transition-all"
+              >
+                Confirmar Graduação
+              </button>
+            </div>
+
+            {/* SCROLLABLE BELT LIST - BELOW */}
+            <div className="flex flex-col gap-2">
+              <label className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1 mb-2">Selecione a Nova Faixa</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
+                {belts.map((belt) => (
+                  <button
+                    key={belt.id}
+                    onClick={() => setDraftBelt(belt.name)}
+                    className={`flex items-center justify-between p-4 rounded-2xl transition-all border ${draftBelt === belt.name
+                      ? 'bg-zinc-950 dark:bg-white border-transparent text-white dark:text-zinc-950 shadow-lg'
+                      : 'bg-white dark:bg-zinc-800/50 border-zinc-100 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 text-zinc-600 dark:text-zinc-400'
+                      }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-5 rounded border border-black/10 relative overflow-hidden" style={{ backgroundColor: belt.color }}>
+                        {belt.secondaryColor && <div className="absolute inset-0 top-1/2" style={{ backgroundColor: belt.secondaryColor }}></div>}
+                      </div>
+                      <span className="text-xs font-bold">{belt.name}</span>
                     </div>
-                    <span className="text-xs font-bold">{belt.name}</span>
-                  </div>
-                  {selectedBelt === belt.name && <Icons.Check className="w-4 h-4" />}
-                </button>
-              ))}
+                    {draftBelt === belt.name && <Icons.Check className="w-4 h-4" />}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -564,36 +639,154 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
           </div>
         )}
 
-        {activeMenu === 'categories' && (
-          <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-300">
-            <div className="flex justify-between items-center mb-6">
-              <h4 className="text-sm font-black text-zinc-950 dark:text-white uppercase tracking-widest">Vincular Categorias</h4>
-              <button onClick={() => setActiveMenu(null)} className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+        {showHistory && (
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-zinc-900 w-full max-w-lg rounded-3xl p-6 shadow-2xl relative">
+              <button
+                onClick={() => setShowHistory(false)}
+                className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+              >
                 <Icons.X />
               </button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {availableCategories.map((cat) => {
-                const isSelected = selectedCategories.includes(cat);
-                return (
-                  <button
-                    key={cat}
-                    onClick={() => toggleCategory(cat)}
-                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${isSelected
-                      ? 'bg-zinc-950 dark:bg-white border-transparent shadow-lg text-white dark:text-zinc-950'
-                      : 'bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-750 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300'
-                      }`}
-                  >
-                    <span className="text-xs font-bold">{cat}</span>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-transparent bg-emerald-500' : 'border-zinc-200 dark:border-zinc-600'}`}>
-                      {isSelected && <Icons.Check className="w-3 h-3 text-white" />}
-                    </div>
-                  </button>
-                );
-              })}
+              <h3 className="text-lg font-black uppercase tracking-tight text-zinc-950 dark:text-white mb-6 flex items-center gap-2">
+                <Icons.History className="w-5 h-5" /> Histórico de Evolução
+              </h3>
+
+              {loadingHistory ? (
+                <div className="flex justify-center p-8"><div className="w-6 h-6 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin"></div></div>
+              ) : history.length === 0 ? (
+                <p className="text-zinc-500 text-center py-8 text-sm">Nenhum histórico registrado.</p>
+              ) : (
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 pb-12 custom-scrollbar">
+                  {history.map((record, index) => {
+                    let beltNameForDisplay = record.item;
+
+                    // Se estiver no histórico, tenta extrair o nome da faixa
+                    // Ex: "Faixa Azul - 2º Grau"
+                    const beltMatch = record.item.match(/Faixa\s+[A-Za-zÀ-ÿ]+/i);
+                    if (beltMatch) {
+                      // Se achar "Faixa Azul" no nome do item, usa isso.
+                      // Precisamos achar o objeto da faixa correspondente.
+                      const extractedName = beltMatch[0]; // "Faixa Azul"
+                      // Tenta achar na lista de belts
+                      const b = belts.find(b => record.item.includes(b.name));
+                      if (b) beltNameForDisplay = b.name;
+                    }
+
+                    // Se for grau e ainda não temos certeza da faixa (legado apenas "Xº Grau")
+                    if (record.type === 'stripe' && !beltNameForDisplay.toLowerCase().includes('faixa')) {
+                      // 1. Tenta achar no histórico antigo (eventos anteriores)
+                      const associatedBeltRecord = history.slice(index + 1).find(r => r.type === 'belt');
+                      if (associatedBeltRecord) {
+                        beltNameForDisplay = associatedBeltRecord.item;
+                      } else {
+                        // 2. Tenta achar no histórico futuro (se houver, o que é estranho, mas...) ou usa a atual
+                        // Se não achou nenhum registro de faixa anterior, assume que é a faixa atual SE não houver cap de troca de faixa depois.
+                        // Simplificação: Usa a faixa atual como fallback se for o registro mais recente ou se não houver troca de faixa registrada.
+                        const newerBeltRecord = history.slice(0, index).find(r => r.type === 'belt');
+                        if (!newerBeltRecord) {
+                          beltNameForDisplay = selectedBelt;
+                        }
+                      }
+                    }
+
+                    // Tenta encontrar a info da faixa (pelo nome do item ou pelo nome descoberto)
+                    const beltInfo = belts.find(b => b.name === beltNameForDisplay || beltNameForDisplay.includes(b.name));
+
+                    return (
+                      <div key={record.id} className="flex gap-4 relative">
+                        {/* Timeline Line */}
+                        <div className="absolute left-[19px] top-8 bottom-[-16px] w-[2px] bg-zinc-100 dark:bg-zinc-800 last:hidden"></div>
+
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 ${record.type === 'belt' ? 'bg-zinc-950 text-white' : 'bg-zinc-100 text-zinc-500'}`}>
+                          {record.type === 'belt' ? <Icons.Award className="w-5 h-5" /> : <div className="w-2 h-2 rounded-full bg-zinc-400"></div>}
+                        </div>
+                        <div className="flex-1 pb-4">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
+                              {new Date(record.date).toLocaleDateString('pt-BR')}
+                            </span>
+
+                            <div className="flex items-center gap-2">
+                              {/* MOSTRA FAIXA SE TIVER INFO (Para Belt E Stripe agora!) */}
+                              {beltInfo ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="h-6 min-w-[120px] rounded border border-black/10 relative overflow-hidden flex shadow-sm" style={{ backgroundColor: beltInfo.color }}>
+                                    {/* Secondary Color (if any) */}
+                                    {beltInfo.secondaryColor && <div className="absolute inset-x-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>}
+
+                                    {/* Main Belt Area */}
+                                    <div className="flex-1"></div>
+
+                                    {/* Black Bar (Tarja) */}
+                                    <div className={`w-12 h-full flex items-center justify-center gap-0.5 px-1 border-l-2 border-black/10 ${beltInfo.name.includes('Preta') ? 'bg-red-600' : 'bg-zinc-900'}`}>
+                                      {[...Array(4)].map((_, i) => {
+                                        // Extract stripe count from item string (e.g. "2º Grau" -> 2)
+                                        const match = record.item.match(/(\d+)º/);
+                                        const stripesCount = match ? parseInt(match[1]) : (record.type === 'belt' ? 0 : 0);
+
+                                        return (
+                                          <div
+                                            key={i}
+                                            className={`w-1 h-4 rounded-full ${i < stripesCount ? 'bg-white shadow-[0_0_4px_rgba(255,255,255,0.8)]' : 'bg-white/10'}`}
+                                          ></div>
+                                        )
+                                      })}
+                                    </div>
+                                  </div>
+                                  <span className="text-xs font-bold text-zinc-900 dark:text-white uppercase tracking-wider">{beltInfo.name}</span>
+                                </div>
+                              ) : (
+                                <p className="font-black text-zinc-900 dark:text-white text-base leading-tight">
+                                  {record.item || <span className="text-red-500 opacity-50 text-[10px]">(Sem nome)</span>}
+                                </p>
+                              )}
+                            </div>
+
+                            <p className="text-[10px] text-zinc-400 font-medium mt-1 uppercase tracking-wider">{record.type === 'belt' ? 'Troca de Faixa' : 'Novo Grau'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
+
+        {
+          activeMenu === 'categories' && (
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-300">
+              <div className="flex justify-between items-center mb-6">
+                <h4 className="text-sm font-black text-zinc-950 dark:text-white uppercase tracking-widest">Vincular Categorias</h4>
+                <button onClick={() => setActiveMenu(null)} className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+                  <Icons.X />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {availableCategories.map((cat) => {
+                  const isSelected = selectedCategories.includes(cat);
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => toggleCategory(cat)}
+                      className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${isSelected
+                        ? 'bg-zinc-950 dark:bg-white border-transparent shadow-lg text-white dark:text-zinc-950'
+                        : 'bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-750 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300'
+                        }`}
+                    >
+                      <span className="text-xs font-bold">{cat}</span>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-transparent bg-emerald-500' : 'border-zinc-200 dark:border-zinc-600'}`}>
+                        {isSelected && <Icons.Check className="w-3 h-3 text-white" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )
+        }
 
         {/* EVOLUTION STATS */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -641,18 +834,68 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         </div>
 
         {/* CADASTRO SECTION */}
+        {/* CADASTRO SECTION */}
         <div className="space-y-8">
           <div className="flex items-center gap-3 ml-1">
             <div className="w-1.5 h-4 bg-zinc-950 dark:bg-white rounded-full"></div>
             <h3 className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-[0.2em]">Informações de Contato</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-            <div className="space-y-8">
-              <SwitchItem label="Aluno Ativo" value={isActive} onChange={setIsActive} />
-              <SwitchItem label="Acesso a Vídeos" value={accessVideos} onChange={setAccessVideos} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <EditableInfoItem
+              icon={<Icons.Mail className="w-4 h-4" />}
+              label="E-mail"
+              value={email}
+              onChange={setEmail}
+              placeholder="exemplo@email.com"
+              type="email"
+            />
+            <EditableInfoItem
+              icon={<Icons.Phone className="w-4 h-4" />}
+              label="WhatsApp"
+              value={phone}
+              onChange={(v) => setPhone(maskPhone(v))}
+              placeholder="(00) 00000-0000"
+            />
+            <EditableInfoItem
+              icon={<Icons.CreditCard className="w-4 h-4" />}
+              label="CPF"
+              value={cpf}
+              onChange={(v) => setCpf(maskCPF(v))}
+              placeholder="000.000.000-00"
+            />
+            <EditableInfoItem
+              icon={<Icons.Calendar className="w-4 h-4" />}
+              label="Nascimento"
+              value={birthday}
+              onChange={setBirthday}
+              placeholder="AAAA-MM-DD"
+              type="date"
+            />
+            <EditableInfoItem
+              icon={<Icons.Clock className="w-4 h-4" />}
+              label="Início na Academia"
+              value={startDate}
+              onChange={setStartDate}
+              placeholder="AAAA-MM-DD"
+              type="date"
+            />
+          </div>
 
-              <div className="bg-zinc-50 dark:bg-zinc-900/40 p-6 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800">
+          <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800 space-y-8">
+            <div className="flex items-center gap-3 ml-1">
+              <div className="w-1.5 h-4 bg-zinc-950 dark:bg-white rounded-full"></div>
+              <h3 className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-[0.2em]">Configurações e Status</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <SwitchItem label="Aluno Ativo" value={isActive} onChange={setIsActive} />
+                <SwitchItem label="Acesso a Vídeos" value={accessVideos} onChange={setAccessVideos} />
+                <SwitchItem label="É Instrutor?" value={isInstructor} onChange={setIsInstructor} />
+              </div>
+
+              <div className="bg-zinc-50 dark:bg-zinc-900/40 p-6 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 h-fit">
                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4">Metadados</p>
                 <div className="space-y-3">
                   <div className="flex justify-between text-xs">
@@ -668,57 +911,16 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                 </div>
               </div>
             </div>
-
-            <div className="space-y-6">
-              <EditableInfoItem
-                icon={<Icons.Mail className="w-4 h-4" />}
-                label="E-mail"
-                value={email}
-                onChange={setEmail}
-                placeholder="exemplo@email.com"
-                type="email"
-              />
-              <EditableInfoItem
-                icon={<Icons.Phone className="w-4 h-4" />}
-                label="WhatsApp"
-                value={phone}
-                onChange={(v) => setPhone(maskPhone(v))}
-                placeholder="(00) 00000-0000"
-              />
-              <EditableInfoItem
-                icon={<Icons.CreditCard className="w-4 h-4" />}
-                label="CPF"
-                value={cpf}
-                onChange={(v) => setCpf(maskCPF(v))}
-                placeholder="000.000.000-00"
-              />
-              <EditableInfoItem
-                icon={<Icons.Calendar className="w-4 h-4" />}
-                label="Nascimento"
-                value={birthday}
-                onChange={setBirthday}
-                placeholder="AAAA-MM-DD"
-                type="date"
-              />
-              <EditableInfoItem
-                icon={<Icons.Clock className="w-4 h-4" />}
-                label="Início na Academia"
-                value={startDate}
-                onChange={setStartDate}
-                placeholder="AAAA-MM-DD"
-                type="date"
-              />
-            </div>
           </div>
         </div>
-      </main>
+      </main >
 
       {/* FOOTER ACTIONS */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 p-6 z-[70] lg:absolute lg:rounded-b-3xl">
+      < footer className="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 p-6 z-[70] lg:absolute lg:rounded-b-3xl" >
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row gap-3">
           <button
             onClick={onBack}
-            className="flex-1 px-8 py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all border border-transparent"
+            className="flex-1 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[11px] bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all border border-transparent"
           >
             Voltar
           </button>
@@ -726,7 +928,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             <button
               onClick={handleDelete}
               disabled={saving}
-              className="flex-1 px-8 py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
+              className="flex-1 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[11px] bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all border border-red-500/20"
             >
               Excluir
             </button>
@@ -734,29 +936,33 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex-[2] bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 px-8 py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
+            className="flex-[2] bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[11px] shadow-2xl hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
           >
             {saving ? 'Gravando...' : 'Salvar Alterações'}
           </button>
         </div>
-        {message && (
-          <div className="max-w-4xl mx-auto mt-4">
-            <div className={`p-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-[0.2em] animate-in slide-in-from-bottom-2 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-lg shadow-emerald-500/5' : 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg shadow-red-500/5'}`}>
-              {message.text}
+        {
+          message && (
+            <div className="max-w-4xl mx-auto mt-4">
+              <div className={`p-4 rounded-2xl text-center text-[10px] font-black uppercase tracking-[0.2em] animate-in slide-in-from-bottom-2 ${message.type === 'success' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-lg shadow-emerald-500/5' : 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-lg shadow-red-500/5'}`}>
+                {message.text}
+              </div>
             </div>
-          </div>
-        )}
-      </footer>
+          )
+        }
+      </footer >
 
       {/* Belt Edit Modal */}
-      {showBeltEditModal && editingBelt && (
-        <BeltEditModal
-          belt={editingBelt}
-          onClose={() => setShowBeltEditModal(false)}
-          studentName={name}
-        />
-      )}
-    </div>
+      {
+        showBeltEditModal && editingBelt && (
+          <BeltEditModal
+            belt={editingBelt}
+            onClose={() => setShowBeltEditModal(false)}
+            studentName={name}
+          />
+        )
+      }
+    </div >
   );
 };
 
