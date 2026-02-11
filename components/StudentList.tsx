@@ -203,12 +203,7 @@ const StudentList: React.FC<StudentListProps> = ({
                             <p className="text-amber-700 text-[11px] font-bold">Mostrando alunos prontos para subir de nível.</p>
                         </div>
                     </div>
-                    <button
-                        onClick={() => { setActiveFilter('all'); if (onFilterChange) onFilterChange('all'); }}
-                        className="text-amber-600 hover:text-amber-900 font-black text-[10px] uppercase tracking-widest bg-white/50 px-3 py-1.5 rounded-lg border border-amber-200 transition-colors"
-                    >
-                        Limpar
-                    </button>
+
                 </div>
             )}
 

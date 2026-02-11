@@ -14,6 +14,22 @@ const VideoSection: React.FC = () => {
     type: 'youtube' as 'youtube' | 'media',
     url: ''
   });
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+
+  const getEmbedUrl = (url: string) => {
+    try {
+      // Regex robustness for various YouTube URL formats
+      const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+      const match = url.match(regExp);
+
+      if (match && match[2].length === 11) {
+        return `https://www.youtube.com/embed/${match[2]}?autoplay=1`;
+      }
+      return url;
+    } catch (e) {
+      return url;
+    }
+  };
 
   useEffect(() => {
     loadVideos();
@@ -148,7 +164,11 @@ const VideoSection: React.FC = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {videos.map((video) => (
-          <div key={video.id} className="group bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div
+            key={video.id}
+            onClick={() => setSelectedVideo(video)}
+            className="group bg-white rounded-2xl border border-zinc-100 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 block cursor-pointer"
+          >
             <div className="relative aspect-video bg-zinc-900">
               <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
@@ -181,6 +201,26 @@ const VideoSection: React.FC = () => {
         <div className="py-20 text-center bg-white rounded-3xl border border-zinc-100">
           <Icons.Video />
           <p className="text-zinc-400 mt-4 font-bold">Nenhum vídeo publicado ainda.</p>
+        </div>
+      )}
+
+      {selectedVideo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedVideo(null)}>
+          <div className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setSelectedVideo(null)}
+              className="absolute top-4 right-4 z-10 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors backdrop-blur-md"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+            </button>
+            <iframe
+              src={getEmbedUrl(selectedVideo.url)}
+              title={selectedVideo.title}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
         </div>
       )}
     </div>

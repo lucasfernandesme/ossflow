@@ -5,15 +5,19 @@ import { BELT_LEVELS, Icons } from '../constants';
 import { Student, TrainingClass } from '../types';
 import { getLocalDateString, formatLocalDisplayDate } from '../utils/dateUtils';
 import { useBelt } from '../contexts/BeltContext';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../services/supabase';
 
 const WEEKDAYS_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 const WEEKDAYS_SHORT = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
 interface DashboardProps {
   onGraduationClick: () => void;
+  onHistoryClick: () => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick, onHistoryClick }) => {
+  const { user } = useAuth();
   const { belts } = useBelt();
   const [selectedDate, setSelectedDate] = useState(new Date());
 
@@ -21,6 +25,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
   const [students, setStudents] = useState<Student[]>([]);
   const [attendanceData, setAttendanceData] = useState<{ name: string; presence: number }[]>([]);
   const [loading, setLoading] = useState(true);
+
+
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -131,9 +137,21 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
     d1.getMonth() === d2.getMonth() &&
     d1.getFullYear() === d2.getFullYear();
 
+
+
+
   return (
     <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500 pb-24 lg:pb-0 pt-4">
-      {/* SELETOR DE DATA ESTILO KANRI */}
+      {/* HEADER DE SAUDAÇÃO */}
+      <div className="px-1">
+        <h1 className="text-2xl lg:text-3xl font-black text-zinc-950 dark:text-white tracking-tight">
+          Olá, <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-emerald-400">{user?.user_metadata?.full_name || 'Sensei'}</span>
+        </h1>
+        <p className="text-zinc-500 dark:text-zinc-400 font-bold uppercase tracking-widest text-xs mt-1">
+          {user?.user_metadata?.gym_name || 'Centro de Treinamento'}
+        </p>
+      </div>
+
       {/* SELETOR DE DATA ESTILO KANRI */}
       <section className="bg-zinc-100 dark:bg-zinc-900 -mx-4 lg:-mx-8 p-4 lg:p-6 shadow-inner transition-colors duration-300">
         <div className="max-w-7xl mx-auto space-y-4">
@@ -300,7 +318,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick }) => {
               </div>
             ))}
           </div>
-          <button className="w-full mt-6 py-2.5 lg:py-3 text-xs lg:text-sm font-bold text-white dark:text-zinc-950 bg-zinc-950 dark:bg-white rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors active:scale-95">
+          <button
+            onClick={onHistoryClick}
+            className="w-full mt-6 py-2.5 lg:py-3 text-xs lg:text-sm font-bold text-white dark:text-zinc-950 bg-zinc-950 dark:bg-white rounded-xl hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors active:scale-95"
+          >
             Ver Todos os Treinos
           </button>
         </div>

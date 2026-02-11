@@ -10,6 +10,7 @@ interface UserProfileProps {
 const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     const { user, signOut } = useAuth();
     const [name, setName] = useState('');
+    const [gymName, setGymName] = useState('');
     const [phone, setPhone] = useState('');
     const [cpf, setCpf] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
@@ -24,12 +25,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     useEffect(() => {
         if (user?.user_metadata) {
             setName(user.user_metadata.full_name || '');
+            setGymName(user.user_metadata.gym_name || '');
             setPhone(maskPhone(user.user_metadata.phone || ''));
             setCpf(maskCPF(user.user_metadata.cpf || ''));
             setAvatarUrl(user.user_metadata.avatar_url || '');
         }
     }, [user]);
 
+    // Helper functions restored
     const maskPhone = (value: string) => {
         const numbers = value.replace(/\D/g, "");
         if (numbers.length <= 10) {
@@ -104,6 +107,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
             const updates: any = {
                 data: {
                     full_name: name,
+                    gym_name: gymName,
                     phone: phone,
                     cpf: cpf,
                     avatar_url: avatarUrl
@@ -223,6 +227,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Seu nome"
+                                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50 text-zinc-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-zinc-950 dark:focus:ring-white transition-all outline-none"
+                            />
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Nome do Centro de Treinamento</label>
+                            <input
+                                type="text"
+                                value={gymName}
+                                onChange={(e) => setGymName(e.target.value)}
+                                placeholder="Ex: Start Jiu-Jitsu"
                                 className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50 text-zinc-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-zinc-950 dark:focus:ring-white transition-all outline-none"
                             />
                         </div>
