@@ -22,12 +22,19 @@ const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number, onClick?: 
 
     const normalizedTarget = beltName.replace(/faixa\s*/i, '').trim().toLowerCase();
 
-    return belts.find(b => {
-      const normalizedB = b.name.replace(/faixa\s*/i, '').trim().toLowerCase();
-      return normalizedB === normalizedTarget ||
-        normalizedB.includes(normalizedTarget) ||
-        normalizedTarget.includes(normalizedB);
-    }) || belts[0] || { color: '#e5e7eb' };
+    // 1. Prioritize EXACT match
+    let found = belts.find(b => b.name.replace(/faixa\s*/i, '').trim().toLowerCase() === normalizedTarget);
+
+    // 2. Fallback to broad match (only if exact match fails)
+    if (!found) {
+      found = belts.find(b => {
+        const normalizedB = b.name.replace(/faixa\s*/i, '').trim().toLowerCase();
+        // Avoid "target includes belt" (e.g. "Green and Black" includes "Green") to prevent partial matches on composites
+        return normalizedB.includes(normalizedTarget);
+      });
+    }
+
+    return found || belts[0] || { color: '#e5e7eb' };
   }, [belts, beltName]);
 
   if (!beltInfo) return null;
@@ -703,12 +710,17 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                       }
                     }
 
-                    // Tenta encontrar a info da faixa (pelo nome do item ou pelo nome descoberto)
+                    // Tenta encontrar a info da faixa (Priorizando match exato)
                     const normalizedDisplay = beltNameForDisplay.replace(/faixa\s*/i, '').trim().toLowerCase();
-                    const beltInfo = belts.find(b => {
-                      const bName = b.name.replace(/faixa\s*/i, '').trim().toLowerCase();
-                      return bName === normalizedDisplay || bName.includes(normalizedDisplay) || normalizedDisplay.includes(bName);
-                    });
+
+                    let beltInfo = belts.find(b => b.name.replace(/faixa\s*/i, '').trim().toLowerCase() === normalizedDisplay);
+
+                    if (!beltInfo) {
+                      beltInfo = belts.find(b => {
+                        const bName = b.name.replace(/faixa\s*/i, '').trim().toLowerCase();
+                        return bName.includes(normalizedDisplay);
+                      });
+                    }
 
                     return (
                       <div key={record.id} className="flex gap-4 relative">
