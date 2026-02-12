@@ -15,7 +15,19 @@ interface StudentDetailsProps {
 
 const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number, onClick?: () => void }> = ({ beltName, stripes, onClick }) => {
   const { belts } = useBelt();
-  const beltInfo = belts.find(b => b.name === beltName || b.name.includes(beltName)) || belts[0] || { color: '#FFF' }; // Fallback safe
+
+  const beltInfo = useMemo(() => {
+    if (!belts.length) return { color: '#e5e7eb', name: 'Carregando...' }; // Placeholder light gray
+
+    const normalizedTarget = beltName.replace(/faixa\s*/i, '').trim().toLowerCase();
+
+    return belts.find(b => {
+      const normalizedB = b.name.replace(/faixa\s*/i, '').trim().toLowerCase();
+      return normalizedB === normalizedTarget ||
+        normalizedB.includes(normalizedTarget) ||
+        normalizedTarget.includes(normalizedB);
+    }) || belts[0] || { color: '#e5e7eb' };
+  }, [belts, beltName]);
 
   if (!beltInfo) return null;
 
@@ -25,12 +37,12 @@ const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number, onClick?: 
         onClick={onClick}
         className="h-8 flex-1 bg-zinc-950 rounded-lg border-2 border-white/20 shadow-xl flex overflow-hidden relative hover:border-zinc-400 dark:hover:border-zinc-500 transition-all active:scale-[0.99] cursor-pointer"
       >
-        <div className="flex-1 relative" style={{ backgroundColor: beltInfo.color }}>
+        <div className="flex-1 h-full relative" style={{ backgroundColor: beltInfo.color }}>
           {beltInfo.secondaryColor && (
             <div className="absolute inset-x-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>
           )}
         </div>
-        <div className={`w-20 h-full flex items-center justify-center gap-1.5 px-2 border-x-4 border-white/10 ${beltName.includes('Preta') ? 'bg-red-600' : 'bg-zinc-900'}`}>
+        <div className={`w-20 h-full flex items-center justify-center gap-1.5 px-2 border-x-4 border-white/10 ${beltName.toLowerCase().includes('preta') ? 'bg-red-600' : 'bg-zinc-900'}`}>
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
@@ -691,7 +703,11 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                     }
 
                     // Tenta encontrar a info da faixa (pelo nome do item ou pelo nome descoberto)
-                    const beltInfo = belts.find(b => b.name === beltNameForDisplay || beltNameForDisplay.includes(b.name));
+                    const normalizedDisplay = beltNameForDisplay.replace(/faixa\s*/i, '').trim().toLowerCase();
+                    const beltInfo = belts.find(b => {
+                      const bName = b.name.replace(/faixa\s*/i, '').trim().toLowerCase();
+                      return bName === normalizedDisplay || bName.includes(normalizedDisplay) || normalizedDisplay.includes(bName);
+                    });
 
                     return (
                       <div key={record.id} className="flex gap-4 relative">
