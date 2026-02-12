@@ -115,6 +115,21 @@ export const LoginScreen = () => {
                     </div>
                 </div>
             </div>
+
+            <div className="mt-6 text-center">
+                <p className="text-zinc-500 text-sm mb-2">
+                    {isSignUp ? 'Já tem uma conta?' : 'Ainda não tem conta?'}
+                </p>
+                <button
+                    onClick={() => {
+                        setIsSignUp(!isSignUp);
+                        setError(null);
+                    }}
+                    className="text-indigo-400 hover:text-indigo-300 font-bold text-sm uppercase tracking-wide transition-colors"
+                >
+                    {isSignUp ? 'Fazer Login' : 'Criar nova conta'}
+                </button>
+            </div>
         </AuthLayout>
     );
 };
