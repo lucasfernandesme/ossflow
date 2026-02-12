@@ -262,10 +262,10 @@ const AuthenticatedApp: React.FC = () => {
 
       {showProfile && <UserProfile onClose={() => setShowProfile(false)} />}
 
-      <div className="flex flex-1 pt-16">
+      <div className="flex flex-1">
         <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} className="hidden lg:flex" />
 
-        <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64 p-4 lg:p-8'} overflow-y-auto`}>
+        <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64 p-4 lg:p-8'} overflow-y-auto pt-20 pb-4`}>
           <div className={selectedStudent ? '' : 'max-w-7xl mx-auto'}>
             {renderContent()}
           </div>
