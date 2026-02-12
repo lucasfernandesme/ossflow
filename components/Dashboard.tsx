@@ -23,7 +23,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick, onHistoryClick
 
   const [classes, setClasses] = useState<TrainingClass[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
-  const [attendanceData, setAttendanceData] = useState<{ name: string; presence: number }[]>([]);
+  const [attendanceData, setAttendanceData] = useState<{ name: string; Presença: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
 
@@ -64,7 +64,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick, onHistoryClick
           const dateStr = getLocalDateString(date);
           return {
             name: label,
-            presence: attendanceCounts[dateStr] || 0
+            Presença: attendanceCounts[dateStr] || 0
           };
         });
 
@@ -290,7 +290,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick, onHistoryClick
                 />
                 <Area
                   type="monotone"
-                  dataKey="presence"
+                  dataKey="Presença"
                   stroke="#09090b"
                   strokeWidth={3}
                   fillOpacity={1}

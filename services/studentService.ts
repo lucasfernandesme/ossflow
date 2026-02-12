@@ -149,7 +149,7 @@ export const StudentService = {
             // Buscar aluno atual
             const { data: student, error: fetchError } = await supabase
                 .from('students')
-                .select('total_classes_attended')
+                .select('total_classes_attended, last_attendance')
                 .eq('id', studentId)
                 .single();
 
@@ -161,9 +161,43 @@ export const StudentService = {
             const currentTotal = student.total_classes_attended || 0;
             const newTotal = Math.max(0, currentTotal - 1);
 
+            const updatePayload: any = { total_classes_attended: newTotal };
+
+            // Se a data removida for igual à última presença registrada, precisamos verificar
+            // se o aluno tem OUTRA presença hoje (outro treino). Se não tiver, precisamos
+            // descobrir qual foi a penúltima presença dele para restaurar.
+            if (student.last_attendance === date) {
+                // 1. Verificar se ainda existe algum log para hoje (ex: fez 2 treinos)
+                const { count, error: countError } = await supabase
+                    .from('attendance_logs')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('student_id', studentId)
+                    .eq('attendance_date', date);
+
+                if (!countError && count === 0) {
+                    // Não tem mais presença hoje. Buscar a ÚLTIMA presença ANTES de hoje.
+                    const { data: lastLog, error: lastLogError } = await supabase
+                        .from('attendance_logs')
+                        .select('attendance_date')
+                        .eq('student_id', studentId)
+                        .lt('attendance_date', date)
+                        .order('attendance_date', { ascending: false })
+                        .limit(1)
+                        .single();
+
+                    if (!lastLogError && lastLog) {
+                        updatePayload.last_attendance = lastLog.attendance_date;
+                    } else {
+                        // Nunca veio antes ou erro, reseta (ou mantém null se já era null)
+                        updatePayload.last_attendance = null;
+                        // Se quisermos ser preciosistas, poderíamos buscar student.start_date, mas null é seguro.
+                    }
+                }
+            }
+
             const { error: updateError } = await supabase
                 .from('students')
-                .update({ total_classes_attended: newTotal })
+                .update(updatePayload)
                 .eq('id', studentId);
 
             if (updateError) errors.push(updateError);
