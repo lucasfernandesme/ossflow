@@ -129,10 +129,10 @@ const AuthenticatedApp: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col min-h-screen ${isDarkMode ? 'dark bg-zinc-950 text-white' : 'bg-zinc-50 text-zinc-950'}`}>
+    <div className={`flex flex-col h-screen overflow-hidden ${isDarkMode ? 'dark bg-zinc-950 text-white' : 'bg-zinc-50 text-zinc-950'}`}>
 
       {/* Mobile/Desktop Header */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 z-50 px-4 flex items-center justify-between">
+      <header className="flex-none h-16 w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between relative">
         {/* Left: Theme Toggle */}
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
@@ -262,10 +262,10 @@ const AuthenticatedApp: React.FC = () => {
 
       {showProfile && <UserProfile onClose={() => setShowProfile(false)} />}
 
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} className="hidden lg:flex" />
 
-        <main className={`flex-1 ${selectedStudent ? 'pt-24' : 'lg:ml-64 p-4 lg:p-8 pt-24'} overflow-y-auto pb-4`}>
+        <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64 p-4 lg:p-8'} overflow-y-auto pb-4`}>
           <div className={selectedStudent ? '' : 'max-w-7xl mx-auto'}>
             {renderContent()}
           </div>
