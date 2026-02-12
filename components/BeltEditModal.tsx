@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BeltInfo } from '../types';
 import { useBelt } from '../contexts/BeltContext';
+import { hasRedBar } from '../utils/beltUtils';
 
 interface BeltEditModalProps {
   belt: BeltInfo;
@@ -68,7 +69,7 @@ const BeltEditModal: React.FC<BeltEditModalProps> = ({ belt, onClose, studentNam
                   <div className="absolute inset-0 top-1/4 h-1/2" style={{ backgroundColor: belt.secondaryColor, opacity: 0.8 }}></div>
                 )}
               </div>
-              <div className={`w-12 h-full flex items-center justify-center border-x border-white/10 ${belt.name.toLowerCase().includes('preta') || belt.name.toLowerCase().includes('black') ? 'bg-red-600' : 'bg-zinc-900'}`}>
+              <div className={`w-12 h-full flex items-center justify-center border-x border-white/10 ${hasRedBar(belt.name) ? 'bg-red-600' : 'bg-zinc-900'}`}>
                 <div className="w-2 h-5 rounded-full bg-white/20"></div>
               </div>
               <div className="w-3 h-full" style={{ backgroundColor: belt.color }}>

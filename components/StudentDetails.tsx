@@ -4,6 +4,7 @@ import { StudentService } from '../services/studentService';
 import { supabase } from '../services/supabase';
 import { useBelt } from '../contexts/BeltContext';
 import { Icons } from '../constants';
+import { hasRedBar } from '../utils/beltUtils';
 import { getLocalDateString } from '../utils/dateUtils';
 import BeltEditModal from './BeltEditModal';
 
@@ -42,7 +43,7 @@ const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number, onClick?: 
             <div className="absolute inset-x-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>
           )}
         </div>
-        <div className={`w-20 h-full flex items-center justify-center gap-1.5 px-2 border-x-4 border-white/10 ${beltName.toLowerCase().includes('preta') || beltName.toLowerCase().includes('black') ? 'bg-red-600' : 'bg-zinc-900'}`}>
+        <div className={`w-20 h-full flex items-center justify-center gap-1.5 px-2 border-x-4 border-white/10 ${hasRedBar(beltName) ? 'bg-red-600' : 'bg-zinc-900'}`}>
           {[...Array(4)].map((_, i) => (
             <div
               key={i}
@@ -735,7 +736,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                                     <div className="flex-1"></div>
 
                                     {/* Black Bar (Tarja) */}
-                                    <div className={`w-12 h-full flex items-center justify-center gap-0.5 px-1 border-l-2 border-black/10 ${beltInfo.name.toLowerCase().includes('preta') || beltInfo.name.toLowerCase().includes('black') ? 'bg-red-600' : 'bg-zinc-900'}`}>
+                                    <div className={`w-12 h-full flex items-center justify-center gap-0.5 px-1 border-l-2 border-black/10 ${hasRedBar(beltInfo.name) ? 'bg-red-600' : 'bg-zinc-900'}`}>
                                       {[...Array(4)].map((_, i) => {
                                         // Extract stripe count from item string (e.g. "2º Grau" -> 2)
                                         const match = record.item.match(/(\d+)º/);

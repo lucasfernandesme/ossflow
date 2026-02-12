@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useBelt } from '../contexts/BeltContext';
 import { BeltInfo } from '../types';
+import { hasRedBar } from '../utils/beltUtils';
 
 const BeltList: React.FC = () => {
   const { belts, loading, addBelt, updateBelt } = useBelt();
@@ -137,7 +138,7 @@ const BeltList: React.FC = () => {
                       <div className="w-full h-1/2 absolute top-1/4 left-0 transition-colors duration-300" style={{ backgroundColor: formData.secondaryColor, opacity: 0.9 }} />
                     )}
                   </div>
-                  <div className={`w-1/4 flex items-center justify-center gap-1 px-1 border-x border-white/10 ${formData.name.toLowerCase().includes('preta') || formData.name.toLowerCase().includes('black') ? 'bg-red-600' : 'bg-zinc-900'}`}>
+                  <div className={`w-1/4 flex items-center justify-center gap-1 px-1 border-x border-white/10 ${hasRedBar(formData.name) ? 'bg-red-600' : 'bg-zinc-900'}`}>
                     {[1, 2, 3, 4].map(i => <div key={i} className="w-1.5 h-full bg-white opacity-20"></div>)}
                   </div>
                   <div className="w-4 h-full transition-colors duration-300" style={{ backgroundColor: formData.color }}>
@@ -308,7 +309,7 @@ const BeltList: React.FC = () => {
                   />
                 )}
               </div>
-              <div className={`w-1/4 flex items-center justify-center gap-1 px-1 border-x border-white/10 ${belt.name.toLowerCase().includes('preta') || belt.name.toLowerCase().includes('black') ? 'bg-red-600' : 'bg-zinc-900'}`}>
+              <div className={`w-1/4 flex items-center justify-center gap-1 px-1 border-x border-white/10 ${hasRedBar(belt.name) ? 'bg-red-600' : 'bg-zinc-900'}`}>
                 {[1, 2, 3, 4].map(i => <div key={i} className="w-1.5 h-full bg-white opacity-20"></div>)}
               </div>
               <div
