@@ -141,7 +141,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick, onHistoryClick
 
 
   return (
-    <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500 pb-24 lg:pb-0 pt-4">
+    <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-500 pb-24 lg:pb-0">
       {/* HEADER DE SAUDAÇÃO */}
       <div className="px-1">
         <h1 className="text-2xl lg:text-3xl font-black text-zinc-950 dark:text-white tracking-tight">

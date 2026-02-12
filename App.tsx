@@ -265,7 +265,7 @@ const AuthenticatedApp: React.FC = () => {
       <div className="flex flex-1">
         <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} className="hidden lg:flex" />
 
-        <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64 p-4 lg:p-8'} overflow-y-auto pt-20 pb-4`}>
+        <main className={`flex-1 ${selectedStudent ? 'pt-24' : 'lg:ml-64 p-4 lg:p-8 pt-24'} overflow-y-auto pb-4`}>
           <div className={selectedStudent ? '' : 'max-w-7xl mx-auto'}>
             {renderContent()}
           </div>
