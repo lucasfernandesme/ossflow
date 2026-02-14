@@ -80,3 +80,20 @@ export interface DashboardStats {
   pendingPayments: number;
   revenueThisMonth: number;
 }
+
+export interface StudentPayment {
+  id: string;
+  studentId: string;
+  month: number;
+  year: number;
+  amount: number;
+  status: 'paid' | 'pending' | 'late';
+  paidAt?: string;
+  createdAt?: string;
+  type: 'revenue' | 'expense';
+  category?: string;
+  description?: string;
+  studentName?: string;
+  proofUrl?: string;
+  proofDate?: string;
+}

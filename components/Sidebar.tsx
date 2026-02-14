@@ -14,6 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
     { id: 'dashboard', label: 'Home', icon: Icons.Dashboard },
     { id: 'attendance', label: 'Chamada', icon: Icons.Award },
     { id: 'students', label: 'Alunos', icon: Icons.Users },
+    { id: 'billing', label: 'Financeiro', icon: Icons.DollarSign },
     { id: 'videos', label: 'Vídeos', icon: Icons.Video },
   ];
 

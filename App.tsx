@@ -9,6 +9,9 @@ import VideoSection from './components/VideoSection';
 import AttendanceSection from './components/AttendanceSection';
 import AttendanceReport from './components/AttendanceReport';
 import GeneralReports from './components/GeneralReports';
+import FinanceScreen from './components/FinanceScreen';
+import FinancialReportsScreen from './components/FinancialReportsScreen';
+import ReportsMenu from './components/ReportsMenu';
 import StudentDetails from './components/StudentDetails';
 import CategorySection from './components/CategorySection';
 import { Student } from './types';
@@ -68,21 +71,38 @@ const AuthenticatedApp: React.FC = () => {
 
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard onGraduationClick={goToGraduation} onHistoryClick={() => setActiveTab('reports')} />;
+        return <Dashboard onGraduationClick={goToGraduation} onHistoryClick={() => setActiveTab('report-attendance')} />;
       case 'attendance':
         return <AttendanceSection categories={categories} />;
       case 'reports':
         return (
-          <AttendanceReport
-            categories={categories}
+          <ReportsMenu
+            onSelect={(type) => {
+              if (type === 'general') setActiveTab('report-general');
+              if (type === 'financial') setActiveTab('report-financial');
+              if (type === 'attendance') setActiveTab('report-attendance');
+            }}
             onBack={() => setActiveTab('dashboard')}
           />
         );
-      case 'general-reports':
+      case 'report-general':
         return (
           <GeneralReports
             categories={categories}
-            onBack={() => setActiveTab('dashboard')}
+            onBack={() => setActiveTab('reports')}
+          />
+        );
+      case 'report-financial':
+        return (
+          <FinancialReportsScreen
+            onBack={() => setActiveTab('reports')}
+          />
+        );
+      case 'report-attendance':
+        return (
+          <AttendanceReport
+            categories={categories}
+            onBack={() => setActiveTab('reports')}
           />
         );
       case 'categories':
@@ -116,12 +136,9 @@ const AuthenticatedApp: React.FC = () => {
         return <AIAssistant />;
       case 'billing':
         return (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] text-zinc-400 py-10 px-4 text-center">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="2" y2="22" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
-            <h3 className="text-lg font-bold text-zinc-800 mt-4">Gestão Financeira</h3>
-            <p className="text-sm mt-2 font-bold text-zinc-400">Clique para abrir o painel completo de cobranças.</p>
-            <button className="mt-8 bg-zinc-950 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest hover:bg-black transition-all">Abrir Fluxo de Caixa</button>
-          </div>
+          <FinanceScreen
+            onBack={() => setActiveTab('dashboard')}
+          />
         );
       default:
         return <Dashboard onGraduationClick={goToGraduation} onHistoryClick={() => setActiveTab('reports')} />;
@@ -201,7 +218,7 @@ const AuthenticatedApp: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);
-                    setActiveTab('general-reports');
+                    setActiveTab('reports');
                   }}
                   className="w-full text-left px-4 py-2.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition-colors flex items-center gap-2"
                 >
@@ -266,7 +283,7 @@ const AuthenticatedApp: React.FC = () => {
         <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} className="hidden lg:flex" />
 
         <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64 p-4 lg:p-8'} overflow-y-auto pb-4`}>
-          <div className={selectedStudent ? '' : 'max-w-7xl mx-auto'}>
+          <div className={`${selectedStudent ? '' : 'max-w-7xl mx-auto'} h-full flex flex-col`}>
             {renderContent()}
           </div>
         </main>
