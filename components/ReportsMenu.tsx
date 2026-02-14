@@ -34,20 +34,6 @@ const ReportsMenu: React.FC<ReportsMenuProps> = ({ onSelect, onBack }) => {
                     </div>
                 </button>
 
-                {/* Financial Report */}
-                <button
-                    onClick={() => onSelect('financial')}
-                    className="flex flex-col gap-4 p-6 bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all group text-left"
-                >
-                    <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                        <DollarSign size={24} />
-                    </div>
-                    <div>
-                        <h3 className="font-black text-lg text-zinc-900 dark:text-white">Relatório Financeiro</h3>
-                        <p className="text-sm text-zinc-400 dark:text-zinc-500 font-medium mt-1">Fluxo de caixa, receitas, despesas e balanço do período.</p>
-                    </div>
-                </button>
-
                 {/* Attendance Report */}
                 <button
                     onClick={() => onSelect('attendance')}
@@ -59,6 +45,20 @@ const ReportsMenu: React.FC<ReportsMenuProps> = ({ onSelect, onBack }) => {
                     <div>
                         <h3 className="font-black text-lg text-zinc-900 dark:text-white">Relatório de Chamada</h3>
                         <p className="text-sm text-zinc-400 dark:text-zinc-500 font-medium mt-1">Histórico de presenças e frequência dos alunos.</p>
+                    </div>
+                </button>
+
+                {/* Financial Report */}
+                <button
+                    onClick={() => onSelect('financial')}
+                    className="flex flex-col gap-4 p-6 bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-xl hover:scale-[1.02] transition-all group text-left"
+                >
+                    <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                        <DollarSign size={24} />
+                    </div>
+                    <div>
+                        <h3 className="font-black text-lg text-zinc-900 dark:text-white">Relatório Financeiro</h3>
+                        <p className="text-sm text-zinc-400 dark:text-zinc-500 font-medium mt-1">Fluxo de caixa, receitas, despesas e balanço do período.</p>
                     </div>
                 </button>
             </div>

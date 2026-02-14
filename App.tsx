@@ -20,6 +20,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { BeltProvider } from './contexts/BeltContext';
 import { LoginScreen } from './components/LoginScreen';
 
+import { ResetPasswordScreen } from './components/ResetPasswordScreen';
+
 import UserProfile from './components/UserProfile';
 
 const AuthenticatedApp: React.FC = () => {
@@ -29,7 +31,7 @@ const AuthenticatedApp: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<Student | 'new' | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [studentFilter, setStudentFilter] = useState<'all' | 'graduation'>('all');
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, passwordRecoveryMode } = useAuth();
   const [loadingData, setLoadingData] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false); // Mock state for now
 
@@ -46,6 +48,11 @@ const AuthenticatedApp: React.FC = () => {
 
   if (loading) {
     return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">Carregando...</div>;
+  }
+
+  // Se estiver em modo de recuperação de senha, mostra a tela de reset
+  if (passwordRecoveryMode) {
+    return <ResetPasswordScreen />;
   }
 
   if (!user) {

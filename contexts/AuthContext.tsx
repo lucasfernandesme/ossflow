@@ -7,6 +7,8 @@ interface AuthContextType {
     user: User | null;
     session: Session | null;
     loading: boolean;
+    passwordRecoveryMode: boolean;
+    setPasswordRecoveryMode: (value: boolean) => void;
     signInWithGoogle: () => Promise<void>;
     signInWithPassword: (data: any) => Promise<void>;
     signUp: (data: any) => Promise<void>;
@@ -17,6 +19,8 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     session: null,
     loading: true,
+    passwordRecoveryMode: false,
+    setPasswordRecoveryMode: () => { },
     signInWithGoogle: async () => { },
     signInWithPassword: async () => { },
     signUp: async () => { },
@@ -27,6 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
+    const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(false);
 
     useEffect(() => {
         // Check active sessions and sets the user
@@ -37,10 +42,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
 
         // Listen for changes on auth state (logged in, signed out, etc.)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
             setLoading(false);
+
+            if (event === 'PASSWORD_RECOVERY') {
+                setPasswordRecoveryMode(true);
+            } else if (event === 'SIGNED_OUT') {
+                setPasswordRecoveryMode(false);
+            }
         });
 
         return () => subscription.unsubscribe();
@@ -73,10 +84,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const signOut = async () => {
         await supabase.auth.signOut();
+        setPasswordRecoveryMode(false);
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, signInWithGoogle, signInWithPassword, signUp, signOut }}>
+        <AuthContext.Provider value={{ user, session, loading, passwordRecoveryMode, setPasswordRecoveryMode, signInWithGoogle, signInWithPassword, signUp, signOut }}>
             {children}
         </AuthContext.Provider>
     );

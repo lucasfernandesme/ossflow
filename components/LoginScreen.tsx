@@ -1,135 +1,293 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { AuthLayout } from './Auth/AuthLayout';
+import { Mail, Lock, ChevronRight, UserPlus, ArrowLeft, Loader2, Phone } from 'lucide-react';
+import { supabase } from '../services/supabase';
+
+// Helper for phone mask
+const maskPhone = (value: string) => {
+    return value
+        .replace(/\D/g, "")
+        .replace(/(\d{2})(\d)/, "($1) $2")
+        .replace(/(\d{5})(\d)/, "$1-$2")
+        .replace(/(-\d{4})\d+?$/, "$1");
+};
 
 export const LoginScreen = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [isSignUp, setIsSignUp] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const { signInWithGoogle, signInWithPassword, signUp } = useAuth();
+    const [view, setView] = useState<'login' | 'register' | 'forgot_password'>('login');
 
-    const handleAuth = async (e: React.FormEvent) => {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [confirmEmail, setConfirmEmail] = useState('');
+    const [whatsapp, setWhatsapp] = useState('');
+    const [password, setPassword] = useState('');
+
+    // Gym Name field (since user asked for it to be mandatory in profile, good to capture early if possible, or leave for later)
+    // PersonalApp didn't have it. I'll stick to name/email/phone for now to match PersonalApp style but keep it simple.
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const { signInWithPassword, signUp } = useAuth();
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
-        setError(null);
+        setIsLoading(true);
+        setError('');
 
         try {
-            if (isSignUp) {
-                await signUp({ email, password });
-                alert('Cadastro realizado! Verifique seu email para confirmar.');
-            } else {
-                await signInWithPassword({ email, password });
-            }
+            await signInWithPassword({ email, password });
+            // AuthContext handles redirect/state update via onAuthStateChange
         } catch (err: any) {
             console.error(err);
-            setError(err.message || 'Ocorreu um erro ao tentar autenticar.');
+            setError('E-mail ou senha incorretos.');
         } finally {
-            setLoading(false);
+            setIsLoading(false);
+        }
+    };
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+
+        try {
+            if (email !== confirmEmail) {
+                setError('Os e-mails não coincidem.');
+                return;
+            }
+
+            if (!whatsapp) {
+                setError('O telefone é obrigatório.');
+                return;
+            }
+
+            // Using AuthContext signUp
+            // Note: AuthContext signUp signature in ossflow is ({ email, password, data })
+            // We pass metadata in 'data'
+            await signUp({
+                email: email.toLowerCase(),
+                password,
+                data: {
+                    name,
+                    phone: whatsapp, // Using phone/whatsapp
+                    role: 'instructor' // Default role for this app
+                }
+            });
+
+            alert('Cadastro realizado! Verifique seu email para confirmar.');
+            setView('login');
+
+        } catch (err: any) {
+            console.error("Erro no registro:", err);
+            setError(err.message || 'Falha ao criar conta. Verifique sua conexão.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email) {
+            alert("Por favor, preencha seu e-mail para recuperar a senha.");
+            return;
+        }
+        setIsLoading(true);
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/reset-password',
+            });
+            if (error) throw error;
+            alert("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+            setView('login');
+        } catch (err: any) {
+            alert(`Erro ao enviar e-mail: ${err.message}`);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <AuthLayout
-            title={isSignUp ? "Criar Conta" : "Bem-vindo de volta"}
-            subtitle={isSignUp ? "Comece sua jornada no OssFlow" : "Faça login para continuar"}
-        >
-            {error && (
-                <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-xl mb-6 text-sm flex items-center gap-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" x2="12" y1="8" y2="12" /><line x1="12" x2="12.01" y1="16" y2="16" /></svg>
-                    {error}
-                </div>
-            )}
-
-            <form onSubmit={handleAuth} className="space-y-5">
-                <div>
-                    <label className="block text-sm font-bold text-zinc-400 mb-2">Email</label>
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-600"
-                        placeholder="seu@email.com"
-                        required
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-bold text-zinc-400 mb-2">Senha</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-zinc-600"
-                        placeholder="••••••••"
-                        required
-                    />
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-900/20 active:scale-[0.98]"
-                >
-                    {loading ? (
-                        <span className="flex items-center justify-center gap-2">
-                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Processando...
-                        </span>
-                    ) : (isSignUp ? 'Criar Conta' : 'Entrar')}
-                </button>
-            </form>
-
-            <div className="mt-8">
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-zinc-800"></div>
+        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 transition-colors font-sans">
+            <div className="w-full max-w-md space-y-8 animate-in fade-in duration-500">
+                <div className="text-center space-y-2">
+                    <div className="mb-6 hover:scale-105 transition-transform duration-300">
+                        {/* Using logo.png from public folder */}
+                        <img src="/logo.png" alt="OssFlow" className="w-24 h-24 rounded-full shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 mx-auto object-cover" />
                     </div>
-                    <div className="relative flex justify-center text-sm">
-                        <span className="px-4 bg-zinc-900 text-zinc-500 font-medium">Ou continue com</span>
-                    </div>
+                    <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter transition-colors uppercase italic">OssFlow</h1>
+                    <p className="text-center text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mt-2 animate-in slide-in-from-top-2">
+                        Gestão Inteligente de Jiu-Jitsu
+                    </p>
                 </div>
 
-                <button
-                    onClick={() => signInWithGoogle()}
-                    className="mt-6 w-full bg-white hover:bg-zinc-200 text-zinc-950 font-bold py-3.5 rounded-xl border border-zinc-200 transition-all flex items-center justify-center gap-3 shadow-lg active:scale-[0.98]"
-                >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                    </svg>
-                    Google
-                </button>
-            </div>
+                {view === 'login' && (
+                    <div className="animate-in slide-in-from-bottom-4 duration-500">
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div className="space-y-2">
+                                <div className="relative group">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-zinc-600 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors" size={20} />
+                                    <input
+                                        type="email"
+                                        placeholder="Seu E-mail"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                        className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] pl-12 pr-6 py-5 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                    />
+                                </div>
+                                <div className="relative group">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-zinc-600 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors" size={20} />
+                                    <input
+                                        type="password"
+                                        placeholder="Sua Senha"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] pl-12 pr-6 py-5 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                    />
+                                </div>
+                            </div>
 
-            <div className="mt-8">
-                <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-zinc-800"></div>
+                            {error && (
+                                <p className="text-center text-red-500 text-[10px] font-black uppercase tracking-widest animate-in shake transition-colors">{error}</p>
+                            )}
+
+                            <div className="flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setView('forgot_password')}
+                                    className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors uppercase tracking-wide"
+                                >
+                                    Esqueceu a senha?
+                                </button>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl transition-all active:scale-95 bg-zinc-900 dark:bg-white shadow-zinc-900/20 dark:shadow-white/10 text-white dark:text-zinc-900 disabled:opacity-50"
+                            >
+                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <>Entrar no Sistema <ChevronRight size={18} /></>}
+                            </button>
+                        </form>
+
+                        <div className="text-center mt-6">
+                            <button
+                                onClick={() => setView('register')}
+                                className="text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white hover:underline transition-colors"
+                            >
+                                Não tenho uma conta
+                            </button>
+                        </div>
                     </div>
-                </div>
-            </div>
+                )}
 
-            <div className="mt-6 text-center">
-                <p className="text-zinc-500 text-sm mb-2">
-                    {isSignUp ? 'Já tem uma conta?' : 'Ainda não tem conta?'}
-                </p>
-                <button
-                    onClick={() => {
-                        setIsSignUp(!isSignUp);
-                        setError(null);
-                    }}
-                    className="text-indigo-400 hover:text-indigo-300 font-bold text-sm uppercase tracking-wide transition-colors"
-                >
-                    {isSignUp ? 'Fazer Login' : 'Criar nova conta'}
-                </button>
+                {view === 'register' && (
+                    <div className="space-y-6 animate-in slide-in-from-right duration-300">
+                        <button onClick={() => setView('login')} className="flex items-center gap-2 text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 font-bold text-xs uppercase tracking-widest transition-colors">
+                            <ArrowLeft size={16} /> Voltar
+                        </button>
+
+                        <div className="space-y-2">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white transition-colors">Criar Nova Conta</h2>
+                        </div>
+
+                        <form onSubmit={handleRegister} className="space-y-4">
+                            <div className="space-y-3">
+                                <input
+                                    type="text"
+                                    placeholder="Nome Completo"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                />
+                                <input
+                                    type="email"
+                                    placeholder="E-mail"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                />
+                                <input
+                                    type="email"
+                                    placeholder="Confirme seu E-mail"
+                                    value={confirmEmail}
+                                    onChange={(e) => setConfirmEmail(e.target.value)}
+                                    required
+                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                />
+                                <input
+                                    type="tel"
+                                    placeholder="Telefone (WhatsApp)"
+                                    value={whatsapp}
+                                    onChange={(e) => setWhatsapp(maskPhone(e.target.value))}
+                                    required
+                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                />
+                                <input
+                                    type="password"
+                                    placeholder="Crie sua Senha"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                />
+                            </div>
+
+                            {error && <p className="text-center text-red-500 text-[10px] font-black uppercase tracking-widest animate-in shake transition-colors">{error}</p>}
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl transition-all active:scale-95 bg-zinc-900 dark:bg-white shadow-zinc-900/20 dark:shadow-white/10 text-white dark:text-zinc-900 disabled:opacity-50"
+                            >
+                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <>Criar Conta <UserPlus size={18} /></>}
+                            </button>
+                        </form>
+                    </div>
+                )}
+
+                {view === 'forgot_password' && (
+                    <div className="space-y-6 animate-in slide-in-from-right duration-300">
+                        <button onClick={() => setView('login')} className="flex items-center gap-2 text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 font-bold text-xs uppercase tracking-widest transition-colors">
+                            <ArrowLeft size={16} /> Voltar
+                        </button>
+
+                        <div className="space-y-2">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white transition-colors">Recuperar Senha</h2>
+                            <p className="text-sm text-slate-500 dark:text-zinc-400">
+                                Digite seu e-mail para receber o link de redefinição de senha.
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleForgotPassword} className="space-y-4">
+                            <div className="space-y-3">
+                                <input
+                                    type="email"
+                                    placeholder="Seu e-mail cadastrado"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                />
+                            </div>
+
+                            {error && <p className="text-center text-red-500 text-[10px] font-black uppercase tracking-widest animate-in shake transition-colors">{error}</p>}
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl transition-all active:scale-95 bg-zinc-900 dark:bg-white shadow-zinc-900/20 dark:shadow-white/10 text-white dark:text-zinc-900 disabled:opacity-50"
+                            >
+                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <>Enviar Link <Mail size={18} /></>}
+                            </button>
+                        </form>
+                    </div>
+                )}
             </div>
-        </AuthLayout>
+        </div>
     );
 };

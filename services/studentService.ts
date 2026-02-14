@@ -54,6 +54,17 @@ export const StudentService = {
             .single();
 
         if (error) throw error;
+
+        // Auto-add initial belt to history
+        if (student.belt) {
+            await this.addHistory(
+                data.id,
+                'belt',
+                student.belt,
+                student.lastGraduationDate || new Date().toISOString().split('T')[0]
+            );
+        }
+
         return data;
     },
 

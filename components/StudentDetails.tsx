@@ -47,7 +47,7 @@ const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number, onClick?: 
       >
         <div className="flex-1 h-full relative" style={{ backgroundColor: beltInfo.color }}>
           {beltInfo.secondaryColor && (
-            <div className="absolute inset-x-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>
+            <div className="absolute inset-x-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondaryColor }}></div>
           )}
         </div>
         <div className={`w-20 h-full flex items-center justify-center gap-1.5 px-2 border-x-4 border-white/10 ${hasRedBar(beltName) ? 'bg-red-600' : 'bg-zinc-900'}`}>
@@ -60,7 +60,7 @@ const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number, onClick?: 
         </div>
         <div className="w-4 h-full" style={{ backgroundColor: beltInfo.color }}>
           {beltInfo.secondaryColor && (
-            <div className="w-full h-1/2 absolute top-1/4" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>
+            <div className="w-full h-1/2 absolute top-1/4" style={{ backgroundColor: beltInfo.secondaryColor }}></div>
           )}
         </div>
       </button>
@@ -114,10 +114,10 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   const [cpf, setCpf] = useState(student?.cpf || '');
   const [birthday, setBirthday] = useState(student?.birthday || '');
   const [startDate, setStartDate] = useState(student?.startDate || getLocalDateString());
-  const [graduationDate, setGraduationDate] = useState(student?.lastGraduationDate || getLocalDateString());
+  const [graduationDate, setGraduationDate] = useState(student?.lastGraduationDate || '');
   const [isActive, setIsActive] = useState(student?.active ?? true);
   const [isInstructor, setIsInstructor] = useState(student?.isInstructor ?? false);
-  const [selectedBelt, setSelectedBelt] = useState<string>(student?.belt || 'Faixa Branca');
+  const [selectedBelt, setSelectedBelt] = useState<string>(student?.belt || '');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(student?.categories || []);
   const [currentStripes, setCurrentStripes] = useState<number>(student?.stripes || 0);
   const [totalClasses, setTotalClasses] = useState<number>(student?.totalClassesAttended || 0);
@@ -131,10 +131,10 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
     setCpf(student?.cpf ? maskCPF(student.cpf) : '');
     setBirthday(student?.birthday || '');
     setStartDate(student?.startDate || getLocalDateString());
-    setGraduationDate(student?.lastGraduationDate || getLocalDateString());
+    setGraduationDate(student?.lastGraduationDate || '');
     setIsActive(student?.active ?? true);
     setIsInstructor(student?.isInstructor ?? false);
-    setSelectedBelt(student?.belt || 'Faixa Branca');
+    setSelectedBelt(student?.belt || '');
     setSelectedCategories(student?.categories || []);
     setCurrentStripes(student?.stripes || 0);
     setTotalClasses(student?.totalClassesAttended || 0);
@@ -364,10 +364,31 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   };
 
   const handleSave = async () => {
-    if (!name) {
+    if (!name.trim()) {
       setMessage({ type: 'error', text: 'O nome do aluno é obrigatório!' });
       return;
     }
+
+    if (!email.trim()) {
+      setMessage({ type: 'error', text: 'O E-mail é obrigatório!' });
+      return;
+    }
+
+    if (selectedCategories.length === 0) {
+      setMessage({ type: 'error', text: 'Selecione pelo menos uma categoria!' });
+      return;
+    }
+
+    if (!selectedBelt) {
+      setMessage({ type: 'error', text: 'Selecione a faixa do aluno!' });
+      return;
+    }
+
+    if (!graduationDate) {
+      setMessage({ type: 'error', text: 'A data da última graduação é obrigatória!' });
+      return;
+    }
+
     setSaving(true);
     setMessage(null);
 
@@ -388,7 +409,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         birthday,
         startDate,
         lastGraduationDate: graduationDate,
-        lastAttendance: student?.lastAttendance || getLocalDateString()
+        lastAttendance: student?.lastAttendance || null
       };
 
       if (student?.id) {
@@ -506,11 +527,21 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
           {/* FAIXA (FULL WIDTH ABAIXO) */}
           <div className="w-full pt-1 border-t border-zinc-200/50 dark:border-zinc-700/50">
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400 ml-1 mb-1 block">Sua Faixa Atual</span>
-            <BeltGraphicLarge
-              beltName={selectedBelt}
-              stripes={currentStripes}
-              onClick={() => setActiveMenu('stripe')}
-            />
+            {selectedBelt ? (
+              <BeltGraphicLarge
+                beltName={selectedBelt}
+                stripes={currentStripes}
+                onClick={() => setActiveMenu('stripe')}
+              />
+            ) : (
+              <button
+                onClick={() => setActiveMenu('belt')}
+                className="w-full h-12 rounded-lg border-2 border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center gap-2 text-zinc-400 dark:text-zinc-500 hover:border-zinc-950 dark:hover:border-white hover:text-zinc-950 dark:hover:text-white transition-all group"
+              >
+                <Icons.Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <span className="font-black uppercase tracking-wider text-xs">Selecionar Faixa Inicial</span>
+              </button>
+            )}
           </div>
         </section>
 
@@ -678,19 +709,17 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                 <p className="text-zinc-500 text-center py-8 text-sm">Nenhum histórico registrado.</p>
               ) : (
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 pb-12 custom-scrollbar">
-                  {history.map((record, index) => {
+                  {[...history].reverse().map((record, index) => {
                     let beltNameForDisplay = record.item;
 
                     // Se estiver no histórico, tenta extrair o nome da faixa
-                    // Ex: "Faixa Azul - 2º Grau"
-                    const beltMatch = record.item.match(/Faixa\s+[A-Za-zÀ-ÿ]+/i);
-                    if (beltMatch) {
-                      // Se achar "Faixa Azul" no nome do item, usa isso.
-                      // Precisamos achar o objeto da faixa correspondente.
-                      const extractedName = beltMatch[0]; // "Faixa Azul"
-                      // Tenta achar na lista de belts
-                      const b = belts.find(b => record.item.includes(b.name));
-                      if (b) beltNameForDisplay = b.name;
+                    // Melhoria: Ordenar faixas por tamanho do nome (decrescente) para priorizar compostas
+                    // Ex: "Faixa Laranja e Preto" deve ser encontrada antes de "Faixa Laranja"
+                    const possibleBelts = belts.filter(b => record.item.toLowerCase().includes(b.name.toLowerCase()));
+                    if (possibleBelts.length > 0) {
+                      // Pega a mais longa (mais específica)
+                      const bestMatch = possibleBelts.sort((a, b) => b.name.length - a.name.length)[0];
+                      beltNameForDisplay = bestMatch.name;
                     }
 
                     // Se for grau e ainda não temos certeza da faixa (legado apenas "Xº Grau")
@@ -740,14 +769,16 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                               {/* MOSTRA FAIXA SE TIVER INFO (Para Belt E Stripe agora!) */}
                               {beltInfo ? (
                                 <div className="flex items-center gap-2">
-                                  <div className="h-6 min-w-[120px] rounded border border-black/10 relative overflow-hidden flex shadow-sm" style={{ backgroundColor: beltInfo.color }}>
-                                    {/* Secondary Color (if any) */}
-                                    {beltInfo.secondaryColor && <div className="absolute inset-x-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondaryColor, opacity: 0.8 }}></div>}
+                                  <div className="h-6 min-w-[120px] rounded border border-black/10 relative overflow-hidden flex shadow-sm">
+                                    {/* Main Belt Area (Body) */}
+                                    <div className="flex-1 relative h-full" style={{ backgroundColor: beltInfo.color }}>
+                                      {/* Secondary Color (Stripe) - Constrained to Body */}
+                                      {beltInfo.secondaryColor && (
+                                        <div className="absolute inset-x-0 top-1/4 h-1/2" style={{ backgroundColor: beltInfo.secondaryColor }}></div>
+                                      )}
+                                    </div>
 
-                                    {/* Main Belt Area */}
-                                    <div className="flex-1"></div>
-
-                                    {/* Black Bar (Tarja) */}
+                                    {/* Black Bar (Tarja) - Right Side */}
                                     <div className={`w-12 h-full flex items-center justify-center gap-0.5 px-1 border-l-2 border-black/10 ${hasRedBar(beltInfo.name) ? 'bg-red-600' : 'bg-zinc-900'}`}>
                                       {[...Array(4)].map((_, i) => {
                                         // Extract stripe count from item string (e.g. "2º Grau" -> 2)
@@ -761,6 +792,13 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                                           ></div>
                                         )
                                       })}
+                                    </div>
+
+                                    {/* Small colored tip at the end (optional, matched BeltGraphicLarge but maybe overkill for history? BeltGraphicLarge has it.) */}
+                                    <div className="w-1.5 h-full" style={{ backgroundColor: beltInfo.color }}>
+                                      {beltInfo.secondaryColor && (
+                                        <div className="w-full h-1/2 absolute top-1/4" style={{ backgroundColor: beltInfo.secondaryColor }}></div>
+                                      )}
                                     </div>
                                   </div>
                                   <span className="text-xs font-bold text-zinc-900 dark:text-white uppercase tracking-wider">{beltInfo.name}</span>
@@ -788,7 +826,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
           activeMenu === 'categories' && (
             <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-300">
               <div className="flex justify-between items-center mb-6">
-                <h4 className="text-sm font-black text-zinc-950 dark:text-white uppercase tracking-widest">Vincular Categorias</h4>
+                <h4 className="text-sm font-black text-zinc-950 dark:text-white uppercase tracking-widest">Vincular Categorias <span className="text-red-500">*</span></h4>
                 <button onClick={() => setActiveMenu(null)} className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
                   <Icons.X />
                 </button>
@@ -873,7 +911,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <EditableInfoItem
               icon={<Icons.Mail className="w-4 h-4" />}
-              label="E-mail"
+              label="E-mail *"
               value={email}
               onChange={setEmail}
               placeholder="exemplo@email.com"

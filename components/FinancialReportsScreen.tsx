@@ -97,7 +97,7 @@ const FinancialReportsScreen: React.FC<FinancialReportsScreenProps> = ({ onBack 
     };
 
     return (
-        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto pr-2 pb-20 custom-scrollbar">
             <div className="flex flex-col min-h-full">
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-6">

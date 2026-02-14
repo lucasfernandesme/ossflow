@@ -104,6 +104,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
             setLoading(true);
             setMessage(null);
 
+            if (!name.trim()) {
+                setMessage({ type: 'error', text: 'O Nome Completo é obrigatório.' });
+                setLoading(false);
+                return;
+            }
+
+            if (!gymName.trim()) {
+                setMessage({ type: 'error', text: 'O Nome do Centro de Treinamento é obrigatório.' });
+                setLoading(false);
+                return;
+            }
+
             const updates: any = {
                 data: {
                     full_name: name,
@@ -221,7 +233,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
 
                     <div className="space-y-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Nome Completo</label>
+                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Nome Completo <span className="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 value={name}
@@ -232,7 +244,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                         </div>
 
                         <div className="space-y-1">
-                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Nome do Centro de Treinamento</label>
+                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Nome do Centro de Treinamento <span className="text-red-500">*</span></label>
                             <input
                                 type="text"
                                 value={gymName}
