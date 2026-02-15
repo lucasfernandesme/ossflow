@@ -323,12 +323,18 @@ export const StudentService = {
     },
 
     async createStudentAuth(studentId: string, email: string, password: string) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("Usuário não autenticado");
+
         const { data, error } = await supabase.functions.invoke('create-student-auth', {
-            body: { studentId, email, password }
+            body: { studentId, email, password },
+            headers: {
+                Authorization: `Bearer ${session.access_token}`
+            }
         });
 
         if (error) throw error;
-        if (data.error) throw new Error(data.error);
+        if (data?.error) throw new Error(data.error);
 
         return data;
     }

@@ -15,6 +15,7 @@ const maskPhone = (value: string) => {
 
 export const LoginScreen = () => {
     const [view, setView] = useState<'login' | 'register' | 'forgot_password'>('login');
+    const [loginMode, setLoginMode] = useState<'instructor' | 'student'>('instructor');
 
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -122,6 +123,29 @@ export const LoginScreen = () => {
                 </div>
 
                 {view === 'login' && (
+                    <div className="flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl mb-8 border border-zinc-200 dark:border-zinc-800 shadow-inner translate-y-[-10px] animate-in slide-in-from-top-2 duration-700">
+                        <button
+                            onClick={() => setLoginMode('instructor')}
+                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${loginMode === 'instructor'
+                                ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-lg'
+                                : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'
+                                }`}
+                        >
+                            Professor
+                        </button>
+                        <button
+                            onClick={() => setLoginMode('student')}
+                            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${loginMode === 'student'
+                                ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-lg'
+                                : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'
+                                }`}
+                        >
+                            Aluno
+                        </button>
+                    </div>
+                )}
+
+                {view === 'login' && (
                     <div className="animate-in slide-in-from-bottom-4 duration-500">
                         <form onSubmit={handleLogin} className="space-y-4">
                             <div className="space-y-2">
@@ -168,7 +192,14 @@ export const LoginScreen = () => {
                                 disabled={isLoading}
                                 className="w-full py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl transition-all active:scale-95 bg-zinc-900 dark:bg-white shadow-zinc-900/20 dark:shadow-white/10 text-white dark:text-zinc-900 disabled:opacity-50"
                             >
-                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <>Entrar no Sistema <ChevronRight size={18} /></>}
+                                {isLoading ? (
+                                    <Loader2 className="animate-spin" size={20} />
+                                ) : (
+                                    <>
+                                        Entrar no Sistema
+                                        <ChevronRight size={18} />
+                                    </>
+                                )}
                             </button>
                         </form>
 

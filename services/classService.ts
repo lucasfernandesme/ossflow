@@ -3,14 +3,11 @@ import { supabase } from './supabase';
 import { TrainingClass } from '../types';
 
 export const ClassService = {
-    async getAll() {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error("Usuário não autenticado");
-
+    async getAll(trainerId?: string) {
         const { data, error } = await supabase
             .from('classes')
             .select('*')
-            .eq('user_id', user.id)
+            .eq('user_id', trainerId || (await supabase.auth.getUser()).data.user?.id)
             .order('start_time', { ascending: true });
 
         if (error) throw error;
