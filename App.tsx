@@ -23,6 +23,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { ResetPasswordScreen } from './components/ResetPasswordScreen';
 
 import UserProfile from './components/UserProfile';
+import StudentDashboard from './components/StudentDashboard';
 
 const AuthenticatedApp: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -57,6 +58,15 @@ const AuthenticatedApp: React.FC = () => {
 
   if (!user) {
     return <LoginScreen />;
+  }
+
+  // Se for aluno, redireciona para o portal do aluno
+  if (user.user_metadata?.role === 'student') {
+    return (
+      <BeltProvider>
+        <StudentDashboard />
+      </BeltProvider>
+    );
   }
 
   const goToGraduation = () => {

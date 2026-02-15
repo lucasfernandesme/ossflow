@@ -4,6 +4,8 @@ import { Icons } from '../constants';
 import { Belt, TrainingClass, Student } from '../types';
 import { ClassService } from '../services/classService';
 import { StudentService } from '../services/studentService';
+import { BookingService } from '../services/bookingService';
+import { useAuth } from '../contexts/AuthContext';
 import { getLocalDateString } from '../utils/dateUtils';
 
 const WEEKDAYS = [
@@ -42,6 +44,9 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
   const [classes, setClasses] = useState<TrainingClass[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const bookingEnabled = user?.user_metadata?.attendance_booking_enabled || false;
+  const [bookedStudentIds, setBookedStudentIds] = useState<string[]>([]);
 
   const [selectedDate, setSelectedDate] = useState(getLocalDateString());
   const [dailyLogs, setDailyLogs] = useState<{ class_id: string; student_id: string }[]>([]);
@@ -78,13 +83,28 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
 
   // Preencher dados ao selecionar aula
   useEffect(() => {
+    const fetchBookings = async () => {
+      if (selectedClass && bookingEnabled) {
+        try {
+          const ids = await BookingService.getClassBookings(selectedClass.id, selectedDate);
+          setBookedStudentIds(ids);
+        } catch (error) {
+          console.error("Error fetching bookings for class:", error);
+        }
+      } else {
+        setBookedStudentIds([]);
+      }
+    };
+
     if (selectedClass) {
       const classLogs = dailyLogs.filter(log => log.class_id === selectedClass.id);
       setPresentIds(new Set(classLogs.map(log => log.student_id)));
+      fetchBookings();
     } else {
       setPresentIds(new Set());
+      setBookedStudentIds([]);
     }
-  }, [selectedClass, dailyLogs]);
+  }, [selectedClass, dailyLogs, selectedDate, bookingEnabled]);
   const [searchTerm, setSearchTerm] = useState('');
   const [finished, setFinished] = useState(false);
   const [showAddClass, setShowAddClass] = useState(false);
@@ -115,11 +135,19 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
 
   const filteredStudents = useMemo(() => {
     if (!selectedClass) return [];
-    return students.filter(s =>
+
+    let baseList = students;
+
+    // Se o agendamento estiver ativo, filtra apenas quem agendou
+    if (bookingEnabled) {
+      baseList = students.filter(s => bookedStudentIds.includes(s.id));
+    }
+
+    return baseList.filter(s =>
       s.categories.includes(selectedClass.targetCategory) &&
       s.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [selectedClass, searchTerm, students]);
+  }, [selectedClass, searchTerm, students, bookingEnabled, bookedStudentIds]);
 
   const instructors = useMemo(() => {
     return students.filter(s => s.isInstructor);
@@ -530,7 +558,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
           <div>
             <h2 className="text-2xl font-black text-zinc-950 uppercase leading-none">{selectedClass.name}</h2>
             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-              {selectedClass.startTime} • FILTRO AUTOMÁTICO: {selectedClass.targetCategory}
+              {selectedClass.startTime} • FILTRO AUTOMÁTICO: {selectedClass.targetCategory} {bookingEnabled && '• APENAS AGENDADOS'}
             </p>
           </div>
         </div>

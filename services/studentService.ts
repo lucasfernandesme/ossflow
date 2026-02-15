@@ -20,6 +20,7 @@ export const StudentService = {
             startDate: s.start_date,
             lastGraduationDate: s.last_graduation_date,
             isInstructor: s.is_instructor,
+            auth_user_id: s.auth_user_id,
         })) as Student[];
     },
 
@@ -319,5 +320,16 @@ export const StudentService = {
             }]);
 
         if (error) throw error;
+    },
+
+    async createStudentAuth(studentId: string, email: string, password: string) {
+        const { data, error } = await supabase.functions.invoke('create-student-auth', {
+            body: { studentId, email, password }
+        });
+
+        if (error) throw error;
+        if (data.error) throw new Error(data.error);
+
+        return data;
     }
 };

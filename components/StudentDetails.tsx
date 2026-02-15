@@ -142,6 +142,12 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   }, [student]);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
+  // Student Auth States
+  const [authEmail, setAuthEmail] = useState(student?.email || '');
+  const [authPassword, setAuthPassword] = useState('');
+  const [isCreatingAuth, setIsCreatingAuth] = useState(false);
+  const [hasAuth, setHasAuth] = useState(!!student?.auth_user_id);
+
   const handleAvatarClick = () => {
     document.getElementById('student-avatar-input')?.click();
   };
@@ -624,7 +630,8 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
               </button>
             </div>
 
-            {/* SCROLLABLE BELT LIST - BELOW */}
+
+            {/* SELECTION GRID */}
             <div className="flex flex-col gap-2">
               <label className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest ml-1 mb-2">Selecione a Nova Faixa</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar">
@@ -949,35 +956,83 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             />
           </div>
 
+
           <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800 space-y-8">
             <div className="flex items-center gap-3 ml-1">
               <div className="w-1.5 h-4 bg-zinc-950 dark:bg-white rounded-full"></div>
               <h3 className="text-xs font-black text-zinc-900 dark:text-white uppercase tracking-[0.2em]">Configurações e Status</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <SwitchItem label="Aluno Ativo" value={isActive} onChange={setIsActive} />
-                <SwitchItem label="Acesso a Vídeos" value={accessVideos} onChange={setAccessVideos} />
-                <SwitchItem label="É Instrutor?" value={isInstructor} onChange={setIsInstructor} />
-              </div>
+            <div className="space-y-4">
+              <SwitchItem label="Aluno Ativo" value={isActive} onChange={setIsActive} />
+              <SwitchItem label="Acesso a Vídeos" value={accessVideos} onChange={setAccessVideos} />
+              <SwitchItem label="É Instrutor?" value={isInstructor} onChange={setIsInstructor} />
+            </div>
+          </div>
 
-              <div className="bg-zinc-50 dark:bg-zinc-900/40 p-6 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 h-fit">
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4">Metadados</p>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-zinc-500">ID Externo</span>
-                    <span className="text-zinc-900 dark:text-white font-mono">{student?.id ? `#${student.id.substring(0, 8)}` : 'Novo'}</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-zinc-500">Status Financeiro</span>
-                    <span className={`font-black uppercase tracking-widest ${student?.paymentStatus === 'overdue' ? 'text-red-500' : 'text-emerald-500'}`}>
-                      {student?.paymentStatus === 'overdue' ? 'Pendente' : 'Em Dia'}
-                    </span>
-                  </div>
+          {/* STUDENT ACCESS SECTION */}
+          <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800">
+            <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase mb-4 flex items-center gap-2">
+              <Icons.Lock className="w-4 h-4" /> Acesso do Aluno
+            </h3>
+
+            {hasAuth ? (
+              <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                  <Icons.Check className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-emerald-900 dark:text-emerald-400 uppercase">Acesso Ativo</p>
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-500 font-bold uppercase">O aluno já possui login cadastrado.</p>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4 bg-zinc-50 dark:bg-zinc-900/50 p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                <div className="space-y-3">
+                  <EditableInfoItem
+                    icon={<Icons.Mail size={16} />}
+                    label="E-mail de Login"
+                    value={authEmail}
+                    onChange={setAuthEmail}
+                    placeholder="email@aluno.com"
+                  />
+                  <EditableInfoItem
+                    icon={<Icons.Lock size={16} />}
+                    label="Senha Inicial"
+                    value={authPassword}
+                    onChange={setAuthPassword}
+                    placeholder="Mínimo 6 caracteres"
+                    type="password"
+                  />
+                </div>
+                <button
+                  onClick={async () => {
+                    if (!student?.id) {
+                      setMessage({ type: 'error', text: 'Salve o aluno antes de criar o acesso.' });
+                      return;
+                    }
+                    if (authPassword.length < 6) {
+                      setMessage({ type: 'error', text: 'A senha deve ter pelo menos 6 caracteres.' });
+                      return;
+                    }
+                    setIsCreatingAuth(true);
+                    try {
+                      await StudentService.createStudentAuth(student.id, authEmail, authPassword);
+                      setHasAuth(true);
+                      setMessage({ type: 'success', text: 'Acesso do aluno criado com sucesso!' });
+                    } catch (err: any) {
+                      setMessage({ type: 'error', text: err.message });
+                    } finally {
+                      setIsCreatingAuth(false);
+                    }
+                  }}
+                  disabled={isCreatingAuth || !authEmail || !authPassword}
+                  className="w-full py-4 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {isCreatingAuth ? 'Criando...' : 'Gerar Acesso do Aluno'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </main >

@@ -49,6 +49,7 @@ export interface Student {
   startDate?: string;
   lastGraduationDate?: string;
   isInstructor?: boolean;
+  auth_user_id?: string;
 }
 
 export interface TrainingClass {

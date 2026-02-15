@@ -14,6 +14,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     const [phone, setPhone] = useState('');
     const [cpf, setCpf] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
+    const [attendanceBookingEnabled, setAttendanceBookingEnabled] = useState(false);
 
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -29,6 +30,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
             setPhone(maskPhone(user.user_metadata.phone || ''));
             setCpf(maskCPF(user.user_metadata.cpf || ''));
             setAvatarUrl(user.user_metadata.avatar_url || '');
+            setAttendanceBookingEnabled(user.user_metadata.attendance_booking_enabled || false);
         }
     }, [user]);
 
@@ -122,7 +124,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                     gym_name: gymName,
                     phone: phone,
                     cpf: cpf,
-                    avatar_url: avatarUrl
+                    avatar_url: avatarUrl,
+                    attendance_booking_enabled: attendanceBookingEnabled
                 }
             };
 
@@ -274,6 +277,28 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                                     placeholder="000.000.000-00"
                                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50 text-zinc-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-zinc-950 dark:focus:ring-white transition-all outline-none"
                                 />
+                            </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                            <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase mb-4 flex items-center gap-2">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="m9 12 2 2 4-4" /></svg>
+                                Configurações de Treino
+                            </h3>
+                            <div className="flex items-center justify-between p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-950/50 border border-zinc-100 dark:border-zinc-800">
+                                <div className="space-y-0.5">
+                                    <p className="text-xs font-black text-zinc-900 dark:text-white uppercase">Modo de Agendamento</p>
+                                    <p className="text-[10px] text-zinc-500 font-bold uppercase leading-tight">Apenas alunos agendados aparecerão na chamada</p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="sr-only peer"
+                                        checked={attendanceBookingEnabled}
+                                        onChange={() => setAttendanceBookingEnabled(!attendanceBookingEnabled)}
+                                    />
+                                    <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-zinc-600 peer-checked:bg-zinc-950 dark:peer-checked:bg-white dark:peer-checked:after:bg-zinc-950"></div>
+                                </label>
                             </div>
                         </div>
 
