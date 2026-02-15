@@ -1,5 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
+import { FinanceService } from '../services/financeService';
+import { StudentService } from '../services/studentService';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 
@@ -15,6 +17,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     const [cpf, setCpf] = useState('');
     const [avatarUrl, setAvatarUrl] = useState('');
     const [attendanceBookingEnabled, setAttendanceBookingEnabled] = useState(false);
+    const [pixKey, setPixKey] = useState('');
 
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -31,6 +34,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
             setCpf(maskCPF(user.user_metadata.cpf || ''));
             setAvatarUrl(user.user_metadata.avatar_url || '');
             setAttendanceBookingEnabled(user.user_metadata.attendance_booking_enabled || false);
+            setPixKey(user.user_metadata.pix_key || '');
         }
     }, [user]);
 
@@ -125,7 +129,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                     phone: phone,
                     cpf: cpf,
                     avatar_url: avatarUrl,
-                    attendance_booking_enabled: attendanceBookingEnabled
+                    attendance_booking_enabled: attendanceBookingEnabled,
+                    pix_key: pixKey
                 }
             };
 
@@ -146,6 +151,40 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
             const { error } = await supabase.auth.updateUser(updates);
 
             if (error) throw error;
+
+            // Sync with 'students' table if this is a trainer
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            if (currentUser) {
+                // Check if there is a student record for this instructor to sync the pix_key
+                const { data: existingRecords } = await supabase
+                    .from('students')
+                    .select('id')
+                    .eq('auth_user_id', currentUser.id)
+                    .eq('is_instructor', true);
+
+                if (existingRecords && existingRecords.length > 0) {
+                    await StudentService.update(existingRecords[0].id, {
+                        pixKey: pixKey,
+                        name: name,
+                        avatar: avatarUrl
+                    });
+                } else {
+                    // Create basic instructor record in students table if missing
+                    await StudentService.create({
+                        name: name,
+                        belt: 'Preta', // Default for instructor if unknown
+                        stripes: 0,
+                        active: true,
+                        paymentStatus: 'paid',
+                        avatar: avatarUrl,
+                        categories: [],
+                        totalClassesAttended: 0,
+                        isInstructor: true,
+                        pixKey: pixKey,
+                        auth_user_id: currentUser.id
+                    } as any);
+                }
+            }
 
             setMessage({ type: 'success', text: 'Perfil atualizado com sucesso!' });
             setNewPassword('');
@@ -278,6 +317,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                                     className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50 text-zinc-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-zinc-950 dark:focus:ring-white transition-all outline-none"
                                 />
                             </div>
+                        </div>
+
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Chave PIX para Recebimentos</label>
+                            <input
+                                type="text"
+                                value={pixKey}
+                                onChange={(e) => setPixKey(e.target.value)}
+                                placeholder="E-mail, CPF, CNPJ ou Chave Aleatória"
+                                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50 text-zinc-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-zinc-950 dark:focus:ring-white transition-all outline-none"
+                            />
+                            <p className="text-[9px] text-zinc-500 font-bold uppercase mt-1 ml-1 leading-tight italic">Esta chave será exibida para seus alunos no portal deles.</p>
                         </div>
 
                         <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">

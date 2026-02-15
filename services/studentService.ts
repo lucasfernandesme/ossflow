@@ -21,6 +21,8 @@ export const StudentService = {
             lastGraduationDate: s.last_graduation_date,
             isInstructor: s.is_instructor,
             auth_user_id: s.auth_user_id,
+            pixKey: s.pix_key,
+            access_password: s.access_password,
         })) as Student[];
     },
 
@@ -46,6 +48,7 @@ export const StudentService = {
             last_attendance: student.lastAttendance || null,
             last_graduation_date: student.lastGraduationDate || null,
             is_instructor: student.isInstructor || false,
+            pix_key: student.pixKey || null,
         };
 
         const { data, error } = await supabase
@@ -80,6 +83,7 @@ export const StudentService = {
         if (updates.lastGraduationDate !== undefined) payload.last_graduation_date = updates.lastGraduationDate || null;
 
         if (updates.isInstructor !== undefined) payload.is_instructor = updates.isInstructor;
+        if (updates.pixKey !== undefined) payload.pix_key = updates.pixKey || null;
 
         // Handle other potentially empty string date/text fields
         if (payload.birthday === '') payload.birthday = null;
@@ -94,6 +98,7 @@ export const StudentService = {
         delete payload.startDate;
         delete payload.lastGraduationDate;
         delete payload.isInstructor;
+        delete payload.pixKey;
 
         const { data, error } = await supabase
             .from('students')

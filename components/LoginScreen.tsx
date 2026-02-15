@@ -109,12 +109,12 @@ export const LoginScreen = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 transition-colors font-sans">
-            <div className="w-full max-w-md space-y-8 animate-in fade-in duration-500">
+        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 transition-colors">
+            <div className="w-full max-w-md space-y-8">
                 <div className="text-center space-y-2">
-                    <div className="mb-6 hover:scale-105 transition-transform duration-300">
+                    <div className="mb-6 hover:scale-105 transition-transform duration-300 animate-logo-pulse">
                         {/* Using logo.png from public folder */}
-                        <img src="/logo.png" alt="OssFlow" className="w-24 h-24 rounded-full shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 mx-auto object-cover" />
+                        <img src="/logo.png" alt="OssFlow" className="w-24 h-24 rounded-full shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 mx-auto object-cover border-2 border-white dark:border-zinc-800" />
                     </div>
                     <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter transition-colors uppercase italic">OssFlow</h1>
                     <p className="text-center text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mt-2 animate-in slide-in-from-top-2">
@@ -123,7 +123,7 @@ export const LoginScreen = () => {
                 </div>
 
                 {view === 'login' && (
-                    <div className="flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl mb-8 border border-zinc-200 dark:border-zinc-800 shadow-inner translate-y-[-10px] animate-in slide-in-from-top-2 duration-700">
+                    <div className="flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl mb-8 border border-zinc-200 dark:border-zinc-800 shadow-inner">
                         <button
                             onClick={() => setLoginMode('instructor')}
                             className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${loginMode === 'instructor'
@@ -146,7 +146,7 @@ export const LoginScreen = () => {
                 )}
 
                 {view === 'login' && (
-                    <div className="animate-in slide-in-from-bottom-4 duration-500">
+                    <div>
                         <form onSubmit={handleLogin} className="space-y-4">
                             <div className="space-y-2">
                                 <div className="relative group">

@@ -70,25 +70,39 @@ const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number, onClick?: 
 };
 
 
-const EditableInfoItem = ({ icon, label, value, onChange, placeholder, type = "text" }: {
+const EditableInfoItem = ({ icon, label, value, onChange, placeholder, type = "text", readOnly = false, showPasswordToggle = false, isPasswordVisible = false, onTogglePassword }: {
   icon: React.ReactNode,
   label: string,
   value: string,
-  onChange: (v: string) => void,
+  onChange?: (v: string) => void,
   placeholder: string,
-  type?: string
+  type?: string,
+  readOnly?: boolean,
+  showPasswordToggle?: boolean,
+  isPasswordVisible?: boolean,
+  onTogglePassword?: () => void
 }) => (
   <div className="space-y-1.5">
     <label className="text-zinc-500 dark:text-zinc-400 text-[11px] font-bold uppercase tracking-wider ml-1">{label}</label>
     <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-zinc-950 dark:focus-within:ring-white transition-all">
       <div className="text-zinc-400 w-5 flex justify-center shrink-0">{icon}</div>
       <input
-        type={type}
+        type={showPasswordToggle ? (isPasswordVisible ? "text" : "password") : type}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange?.(e.target.value)}
         placeholder={placeholder}
-        className="flex-1 bg-transparent text-zinc-950 dark:text-white text-sm font-semibold focus:outline-none placeholder:text-zinc-400"
+        readOnly={readOnly}
+        className={`flex-1 bg-transparent text-zinc-950 dark:text-white text-sm font-semibold focus:outline-none placeholder:text-zinc-400 ${readOnly ? 'cursor-not-allowed opacity-60' : ''}`}
       />
+      {showPasswordToggle && (
+        <button
+          onClick={onTogglePassword}
+          type="button"
+          className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 transition-colors"
+        >
+          {isPasswordVisible ? <Icons.EyeOff className="w-4 h-4" /> : <Icons.Eye className="w-4 h-4" />}
+        </button>
+      )}
     </div>
   </div>
 );
@@ -144,9 +158,18 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
 
   // Student Auth States
   const [authEmail, setAuthEmail] = useState(student?.email || '');
-  const [authPassword, setAuthPassword] = useState('');
+  const [authPassword, setAuthPassword] = useState(() => `oss${Math.floor(1000 + Math.random() * 9000)}`);
   const [isCreatingAuth, setIsCreatingAuth] = useState(false);
   const [hasAuth, setHasAuth] = useState(!!student?.auth_user_id);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+
+  // Sync authEmail with email for new users/non-auth users
+  useEffect(() => {
+    if (!hasAuth) {
+      setAuthEmail(email);
+    }
+  }, [email, hasAuth]);
+
 
   const handleAvatarClick = () => {
     document.getElementById('student-avatar-input')?.click();
@@ -425,18 +448,24 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         if (student.belt !== selectedBelt) {
           await StudentService.addHistory(student.id, 'belt', selectedBelt, graduationDate);
         } else if (student.stripes !== currentStripes) {
-          // Only log stripe if it changed (and belt didn't, or belt change handles reset implicitly)
-          // Simple approach: Log stripe change if it's different.
-          // If promoted to new belt, stripes become 0. We might not want to log "0 stripes".
-          // If we just added a stripe (e.g. 1 -> 2), log it.
-          // FIX: Include the belt name in the history item for accuracy.
           if (currentStripes > 0) {
             await StudentService.addHistory(student.id, 'stripe', `${selectedBelt} - ${currentStripes}º Grau`, graduationDate);
           }
         }
-
       } else {
-        await StudentService.create(studentData);
+        const newStudent = await StudentService.create(studentData);
+        studentData.id = newStudent.id;
+      }
+
+      // 4. Automated Student Auth Creation
+      if (!hasAuth && authEmail && authPassword) {
+        try {
+          await StudentService.createStudentAuth(student?.id || studentData.id, authEmail, authPassword);
+          setHasAuth(true);
+        } catch (authError) {
+          console.error("Erro ao criar acesso automático:", authError);
+          // We don't block the main save if only auth fails, but we log it
+        }
       }
 
       setMessage({ type: 'success', text: 'Dados salvos com sucesso!' });
@@ -977,24 +1006,67 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             </h3>
 
             {hasAuth ? (
-              <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                  <Icons.Check className="w-5 h-5" />
+              <div className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/50 rounded-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="p-4 flex items-center gap-3 border-b border-emerald-100 dark:border-emerald-800/30">
+                  <div className="w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-emerald-500/20">
+                    <Icons.Check className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-emerald-900 dark:text-emerald-400 uppercase">Acesso Ativo</p>
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-500 font-bold uppercase tracking-tight">Login gerado com sucesso</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-black text-emerald-900 dark:text-emerald-400 uppercase">Acesso Ativo</p>
-                  <p className="text-[10px] text-emerald-600 dark:text-emerald-500 font-bold uppercase">O aluno já possui login cadastrado.</p>
+
+                <div className="p-4 space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-emerald-700 dark:text-emerald-500 uppercase ml-1">Usuário / E-mail</label>
+                    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800/50">
+                      <Icons.Mail className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="flex-1 text-xs font-bold text-zinc-900 dark:text-white truncate">{student?.email}</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(student?.email || '');
+                          setMessage({ type: 'success', text: 'E-mail copiado!' });
+                        }}
+                        className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-emerald-500 transition-colors"
+                      >
+                        <Icons.Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-emerald-700 dark:text-emerald-500 uppercase ml-1">Senha de Acesso</label>
+                    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800/50">
+                      <Icons.Lock className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="flex-1 text-xs font-mono font-bold text-zinc-900 dark:text-white">{student?.access_password || '******'}</span>
+                      <button
+                        onClick={() => {
+                          if (student?.access_password) {
+                            navigator.clipboard.writeText(student.access_password);
+                            setMessage({ type: 'success', text: 'Senha copiada!' });
+                          }
+                        }}
+                        className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-emerald-500 transition-colors"
+                      >
+                        <Icons.Copy className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    {student && !student.access_password && (
+                      <p className="text-[8px] text-zinc-500 italic ml-1 mt-1">Apenas usuários criados recentemente exibem a senha.</p>
+                    )}
+                  </div>
                 </div>
               </div>
             ) : (
               <div className="space-y-4 bg-zinc-50 dark:bg-zinc-900/50 p-5 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                <div className="space-y-3">
+                <div className="p-4 space-y-3">
                   <EditableInfoItem
                     icon={<Icons.Mail size={16} />}
-                    label="E-mail de Login"
+                    label="E-mail de Login (Sincronizado)"
                     value={authEmail}
-                    onChange={setAuthEmail}
                     placeholder="email@aluno.com"
+                    readOnly={true}
                   />
                   <EditableInfoItem
                     icon={<Icons.Lock size={16} />}
@@ -1002,35 +1074,12 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                     value={authPassword}
                     onChange={setAuthPassword}
                     placeholder="Mínimo 6 caracteres"
-                    type="password"
+                    showPasswordToggle={true}
+                    isPasswordVisible={isPasswordVisible}
+                    onTogglePassword={() => setIsPasswordVisible(!isPasswordVisible)}
                   />
+                  <p className="text-[9px] text-zinc-500 italic ml-1 leading-tight">O acesso será criado automaticamente ao salvar o aluno.</p>
                 </div>
-                <button
-                  onClick={async () => {
-                    if (!student?.id) {
-                      setMessage({ type: 'error', text: 'Salve o aluno antes de criar o acesso.' });
-                      return;
-                    }
-                    if (authPassword.length < 6) {
-                      setMessage({ type: 'error', text: 'A senha deve ter pelo menos 6 caracteres.' });
-                      return;
-                    }
-                    setIsCreatingAuth(true);
-                    try {
-                      await StudentService.createStudentAuth(student.id, authEmail, authPassword);
-                      setHasAuth(true);
-                      setMessage({ type: 'success', text: 'Acesso do aluno criado com sucesso!' });
-                    } catch (err: any) {
-                      setMessage({ type: 'error', text: err.message });
-                    } finally {
-                      setIsCreatingAuth(false);
-                    }
-                  }}
-                  disabled={isCreatingAuth || !authEmail || !authPassword}
-                  className="w-full py-4 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-                >
-                  {isCreatingAuth ? 'Criando...' : 'Gerar Acesso do Aluno'}
-                </button>
               </div>
             )}
           </div>

@@ -15,6 +15,7 @@ import ReportsMenu from './components/ReportsMenu';
 import StudentDetails from './components/StudentDetails';
 import CategorySection from './components/CategorySection';
 import { Student } from './types';
+import { Icons } from './constants';
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { BeltProvider } from './contexts/BeltContext';
@@ -24,8 +25,9 @@ import { ResetPasswordScreen } from './components/ResetPasswordScreen';
 
 import UserProfile from './components/UserProfile';
 import StudentDashboard from './components/StudentDashboard';
+import LoadingScreen from './components/LoadingScreen';
 
-const AuthenticatedApp: React.FC = () => {
+const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void }> = ({ isDarkMode, setIsDarkMode }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showProfile, setShowProfile] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -34,7 +36,6 @@ const AuthenticatedApp: React.FC = () => {
   const [studentFilter, setStudentFilter] = useState<'all' | 'graduation'>('all');
   const { user, loading, signOut, passwordRecoveryMode } = useAuth();
   const [loadingData, setLoadingData] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false); // Mock state for now
 
   // UseEffect para carregar categorias iniciais
   React.useEffect(() => {
@@ -48,7 +49,7 @@ const AuthenticatedApp: React.FC = () => {
   }, [user]);
 
   if (loading) {
-    return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white">Carregando...</div>;
+    return <LoadingScreen />;
   }
 
   // Se estiver em modo de recuperação de senha, mostra a tela de reset
@@ -163,8 +164,7 @@ const AuthenticatedApp: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col h-screen overflow-hidden ${isDarkMode ? 'dark bg-zinc-950 text-white' : 'bg-zinc-50 text-zinc-950'}`}>
-
+    <>
       {/* Mobile/Desktop Header */}
       <header className="flex-none h-16 w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between relative">
         {/* Left: Theme Toggle */}
@@ -296,11 +296,11 @@ const AuthenticatedApp: React.FC = () => {
 
       {showProfile && <UserProfile onClose={() => setShowProfile(false)} />}
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex-1 flex overflow-hidden">
         <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} className="hidden lg:flex" />
 
-        <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64 p-4 lg:p-8'} overflow-y-auto pb-4`}>
-          <div className={`${selectedStudent ? '' : 'max-w-7xl mx-auto'} h-full flex flex-col`}>
+        <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64'} ${selectedStudent || activeTab === 'billing' ? 'h-full overflow-hidden' : 'p-4 lg:p-8 overflow-y-auto pb-4'}`}>
+          <div className={`${selectedStudent || activeTab === 'billing' ? '' : 'max-w-7xl mx-auto'} flex flex-col h-full`}>
             {renderContent()}
           </div>
         </main>
@@ -311,20 +311,26 @@ const AuthenticatedApp: React.FC = () => {
           onClick={() => setActiveTab('attendance')}
           className="fixed bottom-24 right-6 w-14 h-14 bg-zinc-950 text-white rounded-full shadow-2xl flex lg:hidden items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 border border-zinc-800"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
+          <Icons.Award size={24} strokeWidth={3} />
         </button>
       )}
-    </div>
+    </>
   );
 };
 
 const App: React.FC = () => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
   return (
-    <AuthProvider>
-      <BeltProvider>
-        <AuthenticatedApp />
-      </BeltProvider>
-    </AuthProvider>
+    <div className={isDarkMode ? 'dark' : ''}>
+      <div className={`min-h-screen flex flex-col ${isDarkMode ? 'bg-zinc-950 text-white' : 'bg-zinc-50 text-zinc-950'}`}>
+        <AuthProvider>
+          <BeltProvider>
+            <AuthenticatedApp isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+          </BeltProvider>
+        </AuthProvider>
+      </div>
+    </div>
   );
 };
 

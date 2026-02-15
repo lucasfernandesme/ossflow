@@ -25,58 +25,62 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick, onHistoryClick
   const [students, setStudents] = useState<Student[]>([]);
   const [attendanceData, setAttendanceData] = useState<{ name: string; Presença: number }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  const fetchData = async () => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const studentService = await import('../services/studentService').then(m => m.StudentService);
+      const classService = await import('../services/classService').then(m => m.ClassService);
 
+      // Get current week range based on local time
+      const now = new Date();
+      const mondayDiff = now.getDay() === 0 ? -6 : 1 - now.getDay();
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + mondayDiff);
+      monday.setHours(0, 0, 0, 0);
+
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      const startDateStr = getLocalDateString(monday);
+      const endDateStr = getLocalDateString(sunday);
+
+      const [classesData, studentsData, attendanceCounts] = await Promise.all([
+        classService.getAll(),
+        studentService.getAll(),
+        studentService.getAttendanceCountsForRange(startDateStr, endDateStr)
+      ]);
+
+      setClasses(classesData);
+      setStudents(studentsData);
+
+      // Transform attendance counts to chart format using local dates
+      const chartData = WEEKDAYS_SHORT.map((label, index) => {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + index);
+        const dateStr = getLocalDateString(date);
+        return {
+          name: label,
+          Presença: attendanceCounts[dateStr] || 0
+        };
+      });
+
+      setAttendanceData(chartData);
+    } catch (err: any) {
+      console.error('Error fetching dashboard data:', err);
+      setError(err.message || 'Falha ao carregar dados');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const studentService = await import('../services/studentService').then(m => m.StudentService);
-        const classService = await import('../services/classService').then(m => m.ClassService);
-
-        // Get current week range based on local time
-        const now = new Date();
-        const mondayDiff = now.getDay() === 0 ? -6 : 1 - now.getDay();
-        const monday = new Date(now);
-        monday.setDate(now.getDate() + mondayDiff);
-        monday.setHours(0, 0, 0, 0);
-
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-        sunday.setHours(23, 59, 59, 999);
-
-        const startDateStr = getLocalDateString(monday);
-        const endDateStr = getLocalDateString(sunday);
-
-        const [classesData, studentsData, attendanceCounts] = await Promise.all([
-          classService.getAll(),
-          studentService.getAll(),
-          studentService.getAttendanceCountsForRange(startDateStr, endDateStr)
-        ]);
-
-        setClasses(classesData);
-        setStudents(studentsData);
-
-        // Transform attendance counts to chart format using local dates
-        const chartData = WEEKDAYS_SHORT.map((label, index) => {
-          const date = new Date(monday);
-          date.setDate(monday.getDate() + index);
-          const dateStr = getLocalDateString(date);
-          return {
-            name: label,
-            Presença: attendanceCounts[dateStr] || 0
-          };
-        });
-
-        setAttendanceData(chartData);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
-  }, []);
+  }, [user]);
 
   // Gera os dias da semana (Segunda a Domingo)
   const weekDays = useMemo(() => {

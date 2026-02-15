@@ -50,6 +50,8 @@ export interface Student {
   lastGraduationDate?: string;
   isInstructor?: boolean;
   auth_user_id?: string;
+  pixKey?: string;
+  access_password?: string;
 }
 
 export interface TrainingClass {

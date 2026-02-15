@@ -407,7 +407,7 @@ const FinanceScreen: React.FC<FinanceScreenProps> = ({ onBack }) => {
                 <div className="w-10"></div>
             </header>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-20 min-h-0 overscroll-contain">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-40 min-h-0 touch-pan-y">
                 {/* Stats Summary */}
                 {activeTab === 'entries' ? (
                     <div className="grid grid-cols-2 gap-4">
@@ -461,7 +461,7 @@ const FinanceScreen: React.FC<FinanceScreenProps> = ({ onBack }) => {
                             <p className="text-sm font-bold text-zinc-400 animate-pulse">Carregando lançamentos...</p>
                         </div>
                     ) : Object.keys(groupedPayments).length === 0 ? (
-                        <div className="bg-white dark:bg-zinc-900 p-12 rounded-[32px] border border-dashed border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center text-center">
+                        <div className="bg-white dark:bg-zinc-900 p-12 rounded-[32px] border border-dashed border-zinc-200 dark:border-zinc-800 flex flex-col items-center justify-center text-center min-h-[300px]">
                             <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-zinc-300 dark:text-zinc-600 mb-4">
                                 <DollarSign size={32} />
                             </div>
@@ -560,7 +560,7 @@ const FinanceScreen: React.FC<FinanceScreenProps> = ({ onBack }) => {
             </div>
 
             {/* Bottom Tab Bar */}
-            <div className="bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 p-4 pb-12 flex items-center justify-around z-20 shrink-0">
+            <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 p-4 pb-12 flex items-center justify-around z-20 shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
                 <button
                     onClick={() => setActiveTab('revenues')}
                     className={`flex flex-col items-center gap-1 ${activeTab === 'revenues' ? 'text-emerald-500' : 'text-zinc-400'}`}

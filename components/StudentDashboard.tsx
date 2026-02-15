@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { supabase } from '../services/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useBelt } from '../contexts/BeltContext';
 import { Student, TrainingClass } from '../types';
@@ -9,6 +10,9 @@ import { hasRedBar } from '../utils/beltUtils';
 import { StudentService } from '../services/studentService';
 import { ClassService } from '../services/classService';
 import { BookingService } from '../services/bookingService';
+import StudentProfileModal from './StudentProfileModal';
+import StudentFinanceModal from './StudentFinanceModal';
+import StudentEvolutionModal from './StudentEvolutionModal';
 
 const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number }> = ({ beltName, stripes }) => {
     const { belts } = useBelt();
@@ -60,6 +64,12 @@ const StudentDashboard: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [isBooking, setIsBooking] = useState<string | null>(null);
     const [selectedDate, setSelectedDate] = useState(new Date());
+    const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showPixModal, setShowPixModal] = useState(false);
+    const [showFinanceModal, setShowFinanceModal] = useState(false);
+    const [showEvolutionModal, setShowEvolutionModal] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
+    const [academyPix, setAcademyPix] = useState<string>('');
 
     const todayStr = getLocalDateString(selectedDate);
     const dayOfWeek = selectedDate.getDay();
@@ -90,13 +100,29 @@ const StudentDashboard: React.FC = () => {
                     setStudentData(mappedStudent);
 
                     // Fetch classes and bookings
-                    // IMPORTANT: Pass s.user_id (the trainer's ID) to ClassService
+                    // IMPORTANT: Pass s.user_id (the trainer's ID or academy owner ID) to ClassService
                     const [classes, bookings] = await Promise.all([
                         ClassService.getAll(s.user_id),
                         BookingService.getMyBookings(mappedStudent.id, todayStr)
                     ]);
                     setAvailableClasses(classes);
                     setMyBookings(bookings);
+
+                    // Fetch Trainer's PIX key from the students table (where is_instructor = true)
+                    // We look for the instructor record belonging to the same academy (user_id)
+                    const { data: trainerRecords, error: trainerError } = await supabase
+                        .from('students')
+                        .select('pix_key')
+                        .eq('user_id', s.user_id)
+                        .eq('is_instructor', true)
+                        .limit(1);
+
+                    if (trainerRecords && trainerRecords.length > 0) {
+                        setAcademyPix(trainerRecords[0].pix_key || '');
+                    }
+                } else {
+                    console.warn("No student profile linked to auth user:", user.id);
+                    setStudentData(null);
                 }
             } catch (error) {
                 console.error("Error fetching student dashboard data:", error);
@@ -187,9 +213,31 @@ const StudentDashboard: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6">
-                <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin"></div>
-                <p className="text-zinc-500 font-black uppercase tracking-[0.2em] mt-4 text-[10px]">Carregando seu tatame...</p>
+            <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-8">
+                <div className="w-12 h-12 border-4 border-zinc-200 dark:border-zinc-800 border-t-emerald-500 rounded-full animate-spin mb-4" />
+                <p className="text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-widest text-[10px]">Carregando seu portal...</p>
+            </div>
+        );
+    }
+
+    if (!studentData) {
+        return (
+            <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-8 text-center">
+                <div className="bg-zinc-100 dark:bg-zinc-900 p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 max-w-sm w-full shadow-xl">
+                    <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Icons.User size={32} />
+                    </div>
+                    <h2 className="text-xl font-black text-zinc-950 dark:text-white mb-2 uppercase tracking-tight">Vínculo não encontrado</h2>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-sm font-bold mb-8">
+                        Sua conta de acesso ainda não foi vinculada ao seu perfil de aluno pela academia.
+                    </p>
+                    <button
+                        onClick={() => signOut()}
+                        className="w-full py-4 px-6 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
+                    >
+                        Sair da Conta
+                    </button>
+                </div>
             </div>
         );
     }
@@ -199,20 +247,65 @@ const StudentDashboard: React.FC = () => {
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col animate-in fade-in duration-500">
             {/* Header */}
-            <header className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 sticky top-0 z-50 flex items-center justify-between">
+            <header className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 sticky top-0 z-50 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
-                    <img src="/logo.png" alt="Ossflow" className="w-10 h-10 rounded-full" />
+                    <div className="w-10 h-10 bg-zinc-950 dark:bg-white rounded-xl flex items-center justify-center text-white dark:text-zinc-950 shadow-lg">
+                        <Icons.User className="w-5 h-5" />
+                    </div>
                     <div>
-                        <h1 className="text-sm font-black uppercase tracking-tight dark:text-white">Portal do Aluno</h1>
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest leading-none">Ossflow</p>
+                        <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Portal do Aluno</p>
+                        <h1 className="text-sm font-black italic tracking-tighter text-zinc-900 dark:text-white uppercase leading-none mt-1">Ossflow</h1>
                     </div>
                 </div>
-                <button
-                    onClick={() => signOut()}
-                    className="w-10 h-10 bg-zinc-100 dark:bg-zinc-800 rounded-xl flex items-center justify-center text-red-500 shadow-sm active:scale-95 transition-all"
-                >
-                    <Icons.X className="w-5 h-5" />
-                </button>
+
+                <div className="relative">
+                    <button
+                        onClick={() => setShowMenu(!showMenu)}
+                        className="w-10 h-10 bg-zinc-50 dark:bg-zinc-800 rounded-xl flex items-center justify-center border border-zinc-100 dark:border-zinc-700 text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-all shadow-sm"
+                    >
+                        <Icons.Menu className="w-5 h-5" />
+                    </button>
+
+                    {showMenu && (
+                        <>
+                            <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-100 dark:border-zinc-800 z-50 py-2 animate-in fade-in zoom-in-95 duration-200">
+                                <button
+                                    onClick={() => { setShowProfileModal(true); setShowMenu(false); }}
+                                    className="w-full px-4 py-3 text-left text-[11px] font-black uppercase text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-3"
+                                >
+                                    <Icons.User width={16} height={16} /> Meu Perfil
+                                </button>
+                                <button
+                                    onClick={() => { setShowPixModal(true); setShowMenu(false); }}
+                                    className="w-full px-4 py-3 text-left text-[11px] font-black uppercase text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-3"
+                                >
+                                    <Icons.DollarSign width={16} height={16} /> Pagamento PIX
+                                </button>
+                                <button
+                                    onClick={() => { setShowFinanceModal(true); setShowMenu(false); }}
+                                    className="w-full px-4 py-3 text-left text-[11px] font-black uppercase text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-3"
+                                >
+                                    <Icons.CreditCard width={16} height={16} /> Financeiro
+                                </button>
+                                <button
+                                    onClick={() => { setShowEvolutionModal(true); setShowMenu(false); }}
+                                    className="w-full px-4 py-3 text-left text-[11px] font-black uppercase text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-3"
+                                >
+                                    <Icons.History width={16} height={16} /> Evolução
+                                </button>
+                                <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-2" />
+                                <button
+                                    onClick={() => signOut()}
+                                    className="w-full px-4 py-3 text-left text-[11px] font-black uppercase text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors flex items-center gap-3"
+                                >
+                                    <Icons.LogOut width={16} height={16} /> Sair
+                                </button>
+
+                            </div>
+                        </>
+                    )}
+                </div>
             </header>
 
             <main className="flex-1 p-6 space-y-8 max-w-2xl mx-auto w-full">
@@ -342,10 +435,76 @@ const StudentDashboard: React.FC = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Modals */}
+            {showProfileModal && studentData && (
+                <StudentProfileModal
+                    student={studentData}
+                    onClose={() => setShowProfileModal(false)}
+                    onUpdate={(updated) => setStudentData(updated)}
+                />
+            )}
+
+            {showFinanceModal && studentData && (
+                <StudentFinanceModal
+                    student={studentData}
+                    onClose={() => setShowFinanceModal(false)}
+                />
+            )}
+
+            {showEvolutionModal && studentData && (
+                <StudentEvolutionModal
+                    student={studentData}
+                    onClose={() => setShowEvolutionModal(false)}
+                />
+            )}
+
+            {showPixModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 border border-zinc-200 dark:border-zinc-800">
+                        <div className="p-6 text-center space-y-4">
+                            <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400">
+                                <Icons.DollarSign size={32} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-zinc-950 dark:text-white uppercase tracking-tight">Pagamento PIX</h2>
+                                <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase mt-1">Copie a chave para pagar</p>
+                            </div>
+
+                            <div className="bg-zinc-50 dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 relative group">
+                                <p className="text-zinc-400 text-[10px] font-black uppercase tracking-widest mb-1">Chave PIX da Academia</p>
+                                <p className="font-black text-zinc-900 dark:text-white break-all text-sm">{academyPix || 'Entre em contato com o professor'}</p>
+                                <button
+                                    onClick={() => {
+                                        if (academyPix) {
+                                            navigator.clipboard.writeText(academyPix);
+                                            alert('Chave PIX copiada!');
+                                        }
+                                    }}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-100 dark:border-zinc-700 hover:scale-105 active:scale-95 transition-all text-zinc-400 hover:text-emerald-500"
+                                >
+                                    <Icons.Check size={16} />
+                                </button>
+                            </div>
+
+                            <p className="text-[10px] text-zinc-400 font-bold uppercase leading-tight px-4 italic">
+                                Após o pagamento, envie o comprovante para seu professor via WhatsApp.
+                            </p>
+                        </div>
+
+                        <div className="p-6 pt-0">
+                            <button
+                                onClick={() => setShowPixModal(false)}
+                                className="w-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-black dark:hover:bg-zinc-200 transition-all active:scale-95 shadow-xl"
+                            >
+                                Entendi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
 export default StudentDashboard;
-
-import { supabase } from '../services/supabase';
