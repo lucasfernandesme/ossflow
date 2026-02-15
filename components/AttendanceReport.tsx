@@ -4,6 +4,7 @@ import { Student } from '../types';
 import { StudentService } from '../services/studentService';
 import { ClassService } from '../services/classService';
 import { useBelt } from '../contexts/BeltContext';
+import { getLocalDateString } from '../utils/dateUtils';
 
 interface AttendanceReportProps {
     categories: string[];
@@ -12,7 +13,7 @@ interface AttendanceReportProps {
 
 const AttendanceReport: React.FC<AttendanceReportProps> = ({ categories, onBack }) => {
     const { belts } = useBelt();
-    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [selectedDate, setSelectedDate] = useState(getLocalDateString());
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [selectedBelt, setSelectedBelt] = useState<string>('');
     const [loading, setLoading] = useState(false);
@@ -20,53 +21,43 @@ const AttendanceReport: React.FC<AttendanceReportProps> = ({ categories, onBack 
     const [allStudents, setAllStudents] = useState<Student[]>([]);
 
     useEffect(() => {
-        loadInitialData();
-    }, []);
+        loadData();
+    }, [selectedDate, selectedCategory, selectedBelt]);
 
-    useEffect(() => {
-        if (selectedDate) {
-            loadReport();
-        }
-    }, [selectedDate, selectedCategory, selectedBelt, allStudents]);
-
-    const loadInitialData = async () => {
-        try {
-            const students = await StudentService.getAll();
-            setAllStudents(students);
-        } catch (error) {
-            console.error('Error loading students:', error);
-        }
-    };
-
-    const loadReport = async () => {
+    const loadData = async () => {
         setLoading(true);
         try {
-            // 1. Get logs for the date
-            const logs = await StudentService.getAttendanceLogs(selectedDate);
+            // Fetch everything in parallel to ensure consistency
+            const [students, logs, classesData] = await Promise.all([
+                StudentService.getAll(),
+                StudentService.getAttendanceLogs(selectedDate),
+                ClassService.getAll()
+            ]);
 
-            // 2. Get classes to map class_id to category
-            const classes = await ClassService.getAll();
-            const classMap = new Map(classes.map(c => [c.id, c]));
+            setAllStudents(students);
+            const classMap = new Map(classesData.map(c => [c.id, c]));
 
-            // 3. Filter logs based on category (if selected)
+            // Filter logs based on category (if selected)
             const filteredLogs = logs.filter(log => {
                 if (!selectedCategory) return true;
                 const cls = classMap.get(log.class_id);
+                // Important: Use direct comparison, but handle missing classes
                 return cls?.targetCategory === selectedCategory;
             });
 
-            // 4. Map student IDs to student objects
-            const studentIds = new Set(filteredLogs.map(log => log.student_id));
-            let present = allStudents.filter(s => studentIds.has(s.id));
+            // Map student IDs from logs to student objects from our student list
+            const studentIdsPresent = new Set(filteredLogs.map(log => log.student_id));
 
-            // 5. Filter by Belt (if selected)
+            let present = students.filter(s => studentIdsPresent.has(s.id));
+
+            // Filter by Belt (if selected)
             if (selectedBelt) {
-                present = present.filter(s => s.belt === selectedBelt);
+                present = present.filter(s => s.belt === selectedBelt || s.belt.toString() === selectedBelt);
             }
 
             setPresentStudents(present);
         } catch (error) {
-            console.error('Error loading report:', error);
+            console.error('Error loading attendance report:', error);
         } finally {
             setLoading(false);
         }
@@ -125,7 +116,15 @@ const AttendanceReport: React.FC<AttendanceReportProps> = ({ categories, onBack 
 
                 <div className="border-t border-zinc-100 pt-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-black uppercase text-zinc-950 text-lg">Alunos Presentes</h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-black uppercase text-zinc-950 text-lg">Alunos Presentes</h3>
+                            {/* Diagnostic badge - helpful for debugging without console */}
+                            {!loading && (
+                                <span className="text-[10px] text-zinc-300 font-bold uppercase">
+                                    ({presentStudents.length} de {allStudents.length} alunos)
+                                </span>
+                            )}
+                        </div>
                         <span className="bg-zinc-950 text-white px-3 py-1 rounded-lg text-xs font-black">
                             {presentStudents.length}
                         </span>
