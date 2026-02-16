@@ -29,7 +29,7 @@ export const LoginScreen = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const { signInWithPassword, signUp } = useAuth();
+    const { signInWithPassword, signUp, signOut } = useAuth();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -37,8 +37,21 @@ export const LoginScreen = () => {
         setError('');
 
         try {
-            await signInWithPassword({ email, password });
-            // AuthContext handles redirect/state update via onAuthStateChange
+            const user = await signInWithPassword({ email, password });
+
+            // Validação de papel (role)
+            const userRole = user?.user_metadata?.role || 'instructor';
+
+            if (userRole !== loginMode) {
+                await signOut();
+                setError(userRole === 'student'
+                    ? 'Esta conta é de ALUNO. Por favor, use a aba "Aluno".'
+                    : 'Esta conta é de PROFESSOR. Por favor, use a aba "Professor".');
+                return;
+            }
+
+            // Se chegou aqui, o login foi bem sucedido e o papel está correto
+            // O AuthContext tratará o redirecionamento
         } catch (err: any) {
             console.error(err);
             setError('E-mail ou senha incorretos.');

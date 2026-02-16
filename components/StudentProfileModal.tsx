@@ -11,12 +11,58 @@ interface StudentProfileModalProps {
     onUpdate: (updatedStudent: Student) => void;
 }
 
-const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onClose }) => {
+const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onClose, onUpdate }) => {
+    const [avatar, setAvatar] = useState(student.avatar || '');
+    const [uploading, setUploading] = useState(false);
+    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
     const name = student.name;
     const email = student.email || '';
     const phone = student.phone || '';
     const cpf = student.cpf || '';
     const birthday = student.birthday || '';
+
+    const handleAvatarClick = () => {
+        document.getElementById('student-profile-avatar-input')?.click();
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+            setUploading(true);
+            setMessage(null);
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `student-profile-${student.id}-${Date.now()}.${fileExt}`;
+            const filePath = `${fileName}`;
+
+            // 1. Upload to Storage
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            // 2. Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath);
+
+            // 3. Update Student Record
+            const updated = await StudentService.update(student.id, { avatar: publicUrl });
+
+            setAvatar(publicUrl);
+            onUpdate({ ...student, avatar: publicUrl });
+            setMessage({ type: 'success', text: 'Foto atualizada com sucesso!' });
+        } catch (error: any) {
+            console.error('Erro no upload:', error);
+            setMessage({ type: 'error', text: 'Erro ao carregar foto.' });
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const formatPhone = (value: string) => {
         const numbers = value.replace(/\D/g, "");
@@ -60,11 +106,50 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                     </button>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar">
+                    {/* PHOTO SECTION */}
+                    <div className="flex flex-col items-center gap-4 mb-4">
+                        <div className="relative group">
+                            <div
+                                onClick={handleAvatarClick}
+                                className="w-24 h-24 rounded-[32px] bg-zinc-100 dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 shadow-xl overflow-hidden cursor-pointer hover:border-zinc-950 dark:hover:border-white transition-all flex items-center justify-center"
+                            >
+                                {avatar ? (
+                                    <img src={avatar} alt="Avatar" className={`w-full h-full object-cover ${uploading ? 'opacity-40' : ''}`} />
+                                ) : (
+                                    <Icons.User className="w-10 h-10 text-zinc-300 dark:text-zinc-600" />
+                                )}
+                                {uploading && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <Icons.Camera className="text-white w-6 h-6" />
+                                </div>
+                            </div>
+                            <input
+                                id="student-profile-avatar-input"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleFileChange}
+                                disabled={uploading}
+                            />
+                        </div>
+                        <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Toque na foto para alterar</p>
+
+                        {message && (
+                            <p className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${message.type === 'success' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20' : 'bg-red-50 text-red-600 dark:bg-red-900/20'}`}>
+                                {message.text}
+                            </p>
+                        )}
+                    </div>
+
                     <div className="px-4 py-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center gap-3 mb-2">
                         <Icons.Lock size={16} className="text-amber-500" />
                         <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-tight">
-                            Para alterar seus dados, entre em contato com a secretaria da academia.
+                            Dados pessoais são alterados apenas pela secretaria.
                         </p>
                     </div>
 
@@ -109,7 +194,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({ student, onCl
                         </div>
                     </div>
 
-                    <div className="space-y-1">
+                    <div className="space-y-1 pb-4">
                         <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Data de Nascimento</label>
                         <input
                             type="text"

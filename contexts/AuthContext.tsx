@@ -10,7 +10,7 @@ interface AuthContextType {
     passwordRecoveryMode: boolean;
     setPasswordRecoveryMode: (value: boolean) => void;
     signInWithGoogle: () => Promise<void>;
-    signInWithPassword: (data: any) => Promise<void>;
+    signInWithPassword: (data: any) => Promise<User | null>;
     signUp: (data: any) => Promise<void>;
     signOut: () => Promise<void>;
 }
@@ -64,11 +64,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const signInWithPassword = async ({ email, password }: any) => {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
         })
         if (error) throw error
+        return data.user
     }
 
     const signUp = async ({ email, password, data }: any) => {

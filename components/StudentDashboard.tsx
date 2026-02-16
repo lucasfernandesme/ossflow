@@ -247,7 +247,7 @@ const StudentDashboard: React.FC = () => {
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col animate-in fade-in duration-500">
             {/* Header */}
-            <header className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 sticky top-0 z-50 flex items-center justify-between shadow-sm">
+            <header className="flex-none h-16 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 sticky top-0 z-50 flex items-center justify-between shadow-sm">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-zinc-950 dark:bg-white rounded-xl flex items-center justify-center text-white dark:text-zinc-950 shadow-lg">
                         <Icons.User className="w-5 h-5" />
@@ -357,14 +357,14 @@ const StudentDashboard: React.FC = () => {
                     </div>
 
                     {/* Menu da Semana estilo Premium */}
-                    <div className="flex justify-between items-center gap-2 overflow-x-auto pb-4 scrollbar-hide px-1">
+                    <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide px-1 snap-x">
                         {weekDays.map((day) => {
                             const isSelected = day.dateStr === todayStr;
                             return (
                                 <button
                                     key={day.dateStr}
                                     onClick={() => setSelectedDate(day.date)}
-                                    className={`flex-1 min-w-[50px] h-[90px] flex flex-col items-center justify-center rounded-[24px] transition-all duration-300 ${isSelected
+                                    className={`flex-none w-14 h-[90px] flex flex-col items-center justify-center rounded-[24px] transition-all duration-300 snap-center ${isSelected
                                         ? 'bg-zinc-700 dark:bg-zinc-800 shadow-2xl scale-105 border border-white/10'
                                         : 'bg-zinc-900/90 dark:bg-zinc-900 border border-transparent'
                                         }`}
