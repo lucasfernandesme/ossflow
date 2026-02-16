@@ -308,20 +308,26 @@ const StudentDashboard: React.FC = () => {
                 </div>
             </header>
 
-            <main className="flex-1 p-6 space-y-8 max-w-2xl mx-auto w-full">
+            <main className="flex-1 p-6 space-y-8 max-w-2xl mx-auto w-full pt-8">
                 {/* Perfil e Progresso */}
-                <section className="bg-white dark:bg-zinc-900 rounded-3xl p-8 shadow-xl border border-zinc-100 dark:border-zinc-800 flex flex-col items-center">
-                    <div className="relative mb-6">
-                        <img
-                            src={studentData?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(studentData?.name || '')}&background=random`}
-                            className="w-24 h-24 rounded-3xl object-cover border-4 border-zinc-50 dark:border-zinc-800 shadow-2xl"
-                        />
+                <section className="bg-white dark:bg-zinc-900 rounded-[32px] p-6 shadow-xl border border-zinc-100 dark:border-zinc-800 flex flex-col items-center relative overflow-hidden">
+                    {/* Background decoration */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-zinc-950/5 dark:bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+
+                    <div className="relative mb-6 z-10">
+                        <div className="w-24 h-24 rounded-[32px] bg-zinc-950 dark:bg-white flex items-center justify-center text-white dark:text-zinc-950 shadow-2xl relative z-10 overflow-hidden border-4 border-white dark:border-zinc-800">
+                            {studentData?.avatar ? (
+                                <img src={studentData.avatar} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                <Icons.User size={40} />
+                            )}
+                        </div>
                         {studentData?.active && (
-                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 w-6 h-6 rounded-full border-4 border-white dark:border-zinc-900 shadow-lg"></div>
+                            <div className="absolute -bottom-1 -right-1 bg-emerald-500 w-6 h-6 rounded-full border-4 border-white dark:border-zinc-900 shadow-lg z-20"></div>
                         )}
                     </div>
 
-                    <div className="w-full max-w-[320px] mb-4">
+                    <div className="w-full max-w-[320px] mb-4 z-10">
                         {studentData?.belt && (
                             <BeltGraphicLarge
                                 beltName={studentData.belt}
@@ -330,13 +336,13 @@ const StudentDashboard: React.FC = () => {
                         )}
                     </div>
 
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-8 z-10">
                         <h2 className="text-2xl font-black text-zinc-900 dark:text-white leading-tight uppercase italic tracking-tighter">
                             {studentData?.name}
                         </h2>
                     </div>
 
-                    <div className="w-full space-y-2">
+                    <div className="w-full space-y-2 z-10">
                         <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-zinc-400">
                             <span>Treinos no Grau Atual</span>
                             <span>{studentData?.totalClassesAttended} de {evolutionData.goal} Aulas</span>
@@ -356,23 +362,23 @@ const StudentDashboard: React.FC = () => {
                         <h3 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-tight">Agendar Treino</h3>
                     </div>
 
-                    {/* Menu da Semana estilo Premium */}
-                    <div className="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-hide px-1 snap-x">
+                    {/* Menu da Semana estilo Premium - Bleeding edge to edge */}
+                    <div className="-mx-6 flex items-center gap-3 overflow-x-auto pb-4 scrollbar-hide px-6 snap-x">
                         {weekDays.map((day) => {
                             const isSelected = day.dateStr === todayStr;
                             return (
                                 <button
                                     key={day.dateStr}
                                     onClick={() => setSelectedDate(day.date)}
-                                    className={`flex-none w-14 h-[90px] flex flex-col items-center justify-center rounded-[24px] transition-all duration-300 snap-center ${isSelected
-                                        ? 'bg-zinc-700 dark:bg-zinc-800 shadow-2xl scale-105 border border-white/10'
-                                        : 'bg-zinc-900/90 dark:bg-zinc-900 border border-transparent'
+                                    className={`flex-none w-[60px] h-[100px] flex flex-col items-center justify-center rounded-[28px] transition-all duration-300 snap-center ${isSelected
+                                        ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-2xl scale-105'
+                                        : 'bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-400'
                                         }`}
                                 >
-                                    <span className={`text-xl font-black ${isSelected ? 'text-white' : 'text-emerald-500/80'}`}>
+                                    <span className={`text-xl font-black ${isSelected ? 'text-white dark:text-zinc-950' : 'text-zinc-900 dark:text-white'}`}>
                                         {day.dayNum}
                                     </span>
-                                    <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${isSelected ? 'text-white' : 'text-emerald-600/60'}`}>
+                                    <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${isSelected ? 'opacity-60' : 'text-zinc-400'}`}>
                                         {day.dayName}
                                     </span>
                                 </button>
