@@ -13,7 +13,7 @@ const maskPhone = (value: string) => {
         .replace(/(-\d{4})\d+?$/, "$1");
 };
 
-export const LoginScreen = () => {
+export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void }> = ({ isDarkMode, setIsDarkMode }) => {
     const [view, setView] = useState<'login' | 'register' | 'forgot_password'>('login');
     const [loginMode, setLoginMode] = useState<'instructor' | 'student'>('instructor');
 
@@ -122,14 +122,28 @@ export const LoginScreen = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 transition-colors">
-            <div className="w-full max-w-md space-y-8">
+        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 transition-colors relative">
+            {/* Header */}
+            <header className="absolute top-0 left-0 w-full h-16 flex items-center justify-between px-6 z-50 bg-slate-50/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-zinc-800/50">
+                <button
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-zinc-900 dark:text-white"
+                >
+                    {isDarkMode ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+                    ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+                    )}
+                </button>
+
+                <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+                    <img src="/logo.png" alt="Ossflow Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
+                    <span className="font-black italic tracking-tighter text-lg text-zinc-900 dark:text-white uppercase">OssFlow</span>
+                </div>
+            </header>
+
+            <div className="w-full max-w-md space-y-8 mt-12">
                 <div className="text-center space-y-2">
-                    <div className="mb-6 hover:scale-105 transition-transform duration-300 animate-logo-pulse">
-                        {/* Using logo.png from public folder */}
-                        <img src="/logo.png" alt="OssFlow" className="w-24 h-24 rounded-full shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 mx-auto object-cover border-2 border-white dark:border-zinc-800" />
-                    </div>
-                    <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter transition-colors uppercase italic">OssFlow</h1>
                     <p className="text-center text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mt-2 animate-in slide-in-from-top-2">
                         Gestão Inteligente de Jiu-Jitsu
                     </p>

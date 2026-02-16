@@ -55,7 +55,7 @@ const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number }> = ({ bel
     );
 };
 
-const StudentDashboard: React.FC = () => {
+const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void }> = ({ isDarkMode, setIsDarkMode }) => {
     const { user, signOut } = useAuth();
     const { belts } = useBelt();
     const [studentData, setStudentData] = useState<Student | null>(null);
@@ -247,18 +247,26 @@ const StudentDashboard: React.FC = () => {
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col animate-in fade-in duration-500">
             {/* Header */}
-            <header className="flex-none h-16 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 sticky top-0 z-50 flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-zinc-950 dark:bg-white rounded-xl flex items-center justify-center text-white dark:text-zinc-950 shadow-lg">
-                        <Icons.User className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Portal do Aluno</p>
-                        <h1 className="text-sm font-black italic tracking-tighter text-zinc-900 dark:text-white uppercase leading-none mt-1">Ossflow</h1>
-                    </div>
+            <header className="flex-none h-16 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 sticky top-0 z-50 flex items-center justify-between shadow-sm relative">
+                {/* Theme Toggle (Left) */}
+                <button
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    className="p-2 rounded-full hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-zinc-900 dark:text-white z-10"
+                >
+                    {isDarkMode ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+                    ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+                    )}
+                </button>
+
+                {/* Centered Logo */}
+                <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
+                    <img src="/logo.png" alt="Ossflow Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
+                    <span className="font-black italic tracking-tighter text-lg text-zinc-900 dark:text-white uppercase">Ossflow</span>
                 </div>
 
-                <div className="relative">
+                <div className="relative z-10">
                     <button
                         onClick={() => setShowMenu(!showMenu)}
                         className="w-10 h-10 bg-zinc-50 dark:bg-zinc-800 rounded-xl flex items-center justify-center border border-zinc-100 dark:border-zinc-700 text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-all shadow-sm"
@@ -362,24 +370,24 @@ const StudentDashboard: React.FC = () => {
                         <h3 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-tight">Agendar Treino</h3>
                     </div>
 
-                    {/* Menu da Semana estilo Premium - Bleeding edge to edge */}
-                    <div className="-mx-6 flex items-center gap-3 overflow-x-auto pb-4 scrollbar-hide px-6 snap-x">
+                    {/* Menu da Semana estilo Premium - Fixed Grid */}
+                    <div className="grid grid-cols-7 gap-1 sm:gap-2">
                         {weekDays.map((day) => {
                             const isSelected = day.dateStr === todayStr;
                             return (
                                 <button
                                     key={day.dateStr}
                                     onClick={() => setSelectedDate(day.date)}
-                                    className={`flex-none w-[60px] h-[100px] flex flex-col items-center justify-center rounded-[28px] transition-all duration-300 snap-center ${isSelected
-                                        ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-2xl scale-105'
+                                    className={`flex flex-col items-center justify-center rounded-[20px] py-3 transition-all duration-300 ${isSelected
+                                        ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 shadow-lg scale-105 z-10'
                                         : 'bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-400'
                                         }`}
                                 >
-                                    <span className={`text-xl font-black ${isSelected ? 'text-white dark:text-zinc-950' : 'text-zinc-900 dark:text-white'}`}>
+                                    <span className={`text-lg sm:text-xl font-black ${isSelected ? 'text-white dark:text-zinc-950' : 'text-zinc-900 dark:text-white'}`}>
                                         {day.dayNum}
                                     </span>
-                                    <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${isSelected ? 'opacity-60' : 'text-zinc-400'}`}>
-                                        {day.dayName}
+                                    <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest mt-0.5 ${isSelected ? 'opacity-60' : 'text-zinc-400'}`}>
+                                        {day.dayName.substring(0, 3)}
                                     </span>
                                 </button>
                             );

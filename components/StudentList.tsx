@@ -148,15 +148,15 @@ const StudentList: React.FC<StudentListProps> = ({
         <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 pb-20 lg:pb-0">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-bold text-zinc-950 border-b-4 border-zinc-950 inline-block pb-1">Tatame de Alunos</h2>
-                    <p className="text-zinc-500 mt-2 text-sm">Gerencie o exército da sua academia.</p>
+                    <h2 className="text-2xl font-bold text-zinc-950 dark:text-white border-b-4 border-zinc-950 dark:border-white inline-block pb-1">Tatame de Alunos</h2>
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">Gerencie o exército da sua academia.</p>
                 </div>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div className="relative flex-1 sm:flex-initial">
                         <input
                             type="text"
                             placeholder="Buscar pelo nome..."
-                            className="pl-10 pr-4 py-2.5 rounded-xl border border-zinc-200 focus:outline-none focus:ring-2 focus:ring-zinc-950/20 w-full sm:w-64 transition-all text-sm font-medium"
+                            className="pl-10 pr-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-zinc-950/20 dark:focus:ring-white/20 w-full sm:w-64 transition-all text-sm font-medium"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -182,7 +182,7 @@ const StudentList: React.FC<StudentListProps> = ({
                             onClick={toggleGraduationFilter}
                             className={`px-4 py-2.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 border-2 active:scale-95 flex-1 sm:flex-initial ${activeFilter === 'graduation'
                                 ? 'bg-amber-500 text-white border-amber-500 shadow-lg shadow-amber-500/20'
-                                : 'bg-white dark:bg-zinc-950 text-zinc-950 dark:text-white border-zinc-100 dark:border-zinc-800 hover:border-amber-400'
+                                : 'bg-white dark:bg-zinc-900 text-zinc-950 dark:text-white border-zinc-100 dark:border-zinc-800 hover:border-amber-400 dark:hover:border-amber-400'
                                 }`}
                         >
                             <Icons.Award />
@@ -193,14 +193,14 @@ const StudentList: React.FC<StudentListProps> = ({
             </div>
 
             {activeFilter === 'graduation' && (
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 p-4 rounded-2xl flex items-center justify-between animate-in slide-in-from-top-2 duration-300">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-amber-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-amber-500/20">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
                         </div>
                         <div>
-                            <p className="text-amber-900 font-black text-xs uppercase tracking-tight">Filtro de Graduação Ativo</p>
-                            <p className="text-amber-700 text-[11px] font-bold">Mostrando alunos prontos para subir de nível.</p>
+                            <p className="text-amber-900 dark:text-amber-200 font-black text-xs uppercase tracking-tight">Filtro de Graduação Ativo</p>
+                            <p className="text-amber-700 dark:text-amber-400 text-[11px] font-bold">Mostrando alunos prontos para subir de nível.</p>
                         </div>
                     </div>
 
@@ -215,24 +215,24 @@ const StudentList: React.FC<StudentListProps> = ({
                         <div
                             key={student.id}
                             onClick={() => onEditStudent(student)}
-                            className={`bg-white p-4 rounded-2xl border transition-all flex flex-col gap-3 active:scale-[0.98] ${eligibility ? 'border-amber-400 shadow-lg shadow-amber-500/5' : 'border-zinc-100 shadow-sm'
+                            className={`bg-white dark:bg-zinc-900 p-4 rounded-2xl border transition-all flex flex-col gap-3 active:scale-[0.98] ${eligibility ? 'border-amber-400 shadow-lg shadow-amber-500/5' : 'border-zinc-100 dark:border-zinc-800 shadow-sm'
                                 }`}
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
                                         <img src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random`} className="w-12 h-12 rounded-full border shadow-sm object-cover" alt="" />
-                                        <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white ${student.active ? 'bg-zinc-950' : 'bg-zinc-300'}`}></div>
+                                        <div className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-zinc-900 ${student.active ? 'bg-zinc-950 dark:bg-white' : 'bg-zinc-300 dark:bg-zinc-600'}`}></div>
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-zinc-950 text-sm">{student.name}</h4>
+                                        <h4 className="font-bold text-zinc-950 dark:text-white text-sm">{student.name}</h4>
                                         <p className="text-[10px] text-zinc-400 font-bold uppercase">ID: #{student.id.slice(0, 4)}</p>
                                     </div>
                                 </div>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-zinc-300"><polyline points="9 18 15 12 9 6" /></svg>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="text-zinc-300 dark:text-zinc-600"><polyline points="9 18 15 12 9 6" /></svg>
                             </div>
 
-                            <div className="flex items-center justify-between pt-2 border-t border-zinc-50">
+                            <div className="flex items-center justify-between pt-2 border-t border-zinc-50 dark:border-zinc-800/50">
                                 <BeltGraphic belt={student.belt} stripes={student.stripes} belts={belts} />
                                 {eligibility && (
                                     <span className="bg-amber-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded tracking-tighter uppercase animate-pulse">
@@ -246,28 +246,28 @@ const StudentList: React.FC<StudentListProps> = ({
             </div>
 
             {/* Tabela de Alunos (Desktop) */}
-            <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-zinc-100 overflow-hidden">
+            <div className="hidden lg:block bg-white dark:bg-zinc-900 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-zinc-50 border-b border-zinc-100">
-                            <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Guerreiro</th>
-                            <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase tracking-widest">Graduação Atual</th>
-                            <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase tracking-widest text-center">Aulas</th>
-                            <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase tracking-widest text-center">Status</th>
-                            <th className="px-6 py-4 text-xs font-black text-zinc-500 uppercase tracking-widest text-right">Ações</th>
+                        <tr className="bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-100 dark:border-zinc-800">
+                            <th className="px-6 py-4 text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Guerreiro</th>
+                            <th className="px-6 py-4 text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Graduação Atual</th>
+                            <th className="px-6 py-4 text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest text-center">Aulas</th>
+                            <th className="px-6 py-4 text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest text-center">Status</th>
+                            <th className="px-6 py-4 text-xs font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest text-right">Ações</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-zinc-100">
+                    <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
                         {filteredStudents.map((student) => {
                             const eligibility = getEligibility(student);
                             return (
-                                <tr key={student.id} className="hover:bg-zinc-50/50 transition-colors group cursor-pointer" onClick={() => onEditStudent(student)}>
+                                <tr key={student.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50 transition-colors group cursor-pointer" onClick={() => onEditStudent(student)}>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
-                                            <img src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random`} className="w-10 h-10 rounded-full border-2 border-white shadow-sm object-cover" alt="" />
+                                            <img src={student.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name)}&background=random`} className="w-10 h-10 rounded-full border-2 border-white dark:border-zinc-700 shadow-sm object-cover" alt="" />
                                             <div>
-                                                <p className="text-sm font-bold text-zinc-950">{student.name}</p>
-                                                <p className="text-[10px] font-black text-zinc-300 uppercase">MAT: #{student.id.slice(0, 4)}</p>
+                                                <p className="text-sm font-bold text-zinc-950 dark:text-white">{student.name}</p>
+                                                <p className="text-[10px] font-black text-zinc-300 dark:text-zinc-500 uppercase">MAT: #{student.id.slice(0, 4)}</p>
                                             </div>
                                         </div>
                                     </td>
@@ -275,7 +275,7 @@ const StudentList: React.FC<StudentListProps> = ({
                                         <BeltGraphic belt={student.belt} stripes={student.stripes} belts={belts} />
                                     </td>
                                     <td className="px-6 py-4 text-center">
-                                        <span className="text-sm font-black text-zinc-950">{student.totalClassesAttended}</span>
+                                        <span className="text-sm font-black text-zinc-950 dark:text-white">{student.totalClassesAttended}</span>
                                         <span className="text-[10px] font-bold text-zinc-400 ml-1 uppercase">Treinos</span>
                                     </td>
                                     <td className="px-6 py-4 text-center">
@@ -284,11 +284,11 @@ const StudentList: React.FC<StudentListProps> = ({
                                                 {eligibility}
                                             </span>
                                         ) : (
-                                            <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-widest">Em Evolução</span>
+                                            <span className="text-[10px] font-bold text-zinc-300 dark:text-zinc-600 uppercase tracking-widest">Em Evolução</span>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button className="text-zinc-400 hover:text-zinc-950 p-1.5 bg-zinc-100 rounded-lg transition-colors">
+                                        <button className="text-zinc-400 hover:text-zinc-950 dark:hover:text-white p-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg transition-colors">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m9 18 6-6-6-6" /></svg>
                                         </button>
                                     </td>
@@ -300,15 +300,15 @@ const StudentList: React.FC<StudentListProps> = ({
             </div>
 
             {filteredStudents.length === 0 && (
-                <div className="p-20 text-center bg-white rounded-3xl border border-dashed border-zinc-100">
-                    <div className="bg-zinc-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-200">
+                <div className="p-20 text-center bg-white dark:bg-zinc-900 rounded-3xl border border-dashed border-zinc-100 dark:border-zinc-800">
+                    <div className="bg-zinc-50 dark:bg-zinc-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-200 dark:text-zinc-600">
                         <Icons.Users />
                     </div>
-                    <p className="text-zinc-400 font-bold uppercase tracking-widest text-xs">Nenhum guerreiro encontrado.</p>
+                    <p className="text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhum guerreiro encontrado.</p>
                     {searchTerm ? (
-                        <p className="text-zinc-300 text-xs mt-2">Tente buscar por outro nome.</p>
+                        <p className="text-zinc-300 dark:text-zinc-600 text-xs mt-2">Tente buscar por outro nome.</p>
                     ) : (
-                        <button onClick={onAddStudent} className="mt-4 text-zinc-950 font-black text-xs uppercase hover:underline">Cadastrar primeiro aluno</button>
+                        <button onClick={onAddStudent} className="mt-4 text-zinc-950 dark:text-white font-black text-xs uppercase hover:underline">Cadastrar primeiro aluno</button>
                     )}
                 </div>
             )}
