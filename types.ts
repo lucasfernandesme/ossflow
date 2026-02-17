@@ -52,6 +52,7 @@ export interface Student {
   auth_user_id?: string;
   pixKey?: string;
   access_password?: string;
+  bookingEnabled?: boolean;
 }
 
 export interface TrainingClass {

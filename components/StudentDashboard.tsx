@@ -120,7 +120,7 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
                     if (trainerRecords && trainerRecords.length > 0) {
                         setAcademyPix(trainerRecords[0].pix_key || '');
-                        setBookingEnabled(trainerRecords[0].booking_enabled ?? true);
+                        setBookingEnabled(trainerRecords[0].booking_enabled ?? false);
                     }
                 } else {
                     console.warn("No student profile linked to auth user:", user.id);
@@ -435,10 +435,10 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                                             onClick={bookingEnabled ? () => handleBooking(cls.id) : undefined}
                                             disabled={!bookingEnabled || isBooking === cls.id}
                                             className={`px-6 py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${!bookingEnabled
-                                                    ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed pointer-events-none'
-                                                    : isBooked
-                                                        ? 'bg-red-50 text-red-500 dark:bg-red-900/20 active:scale-95'
-                                                        : 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 active:scale-95'
+                                                ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed pointer-events-none'
+                                                : isBooked
+                                                    ? 'bg-red-50 text-red-500 dark:bg-red-900/20 active:scale-95'
+                                                    : 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 active:scale-95'
                                                 }`}
                                         >
                                             {!bookingEnabled ? 'Desativado' : (isBooking === cls.id ? '...' : (isBooked ? 'Cancelar' : 'Agendar'))}

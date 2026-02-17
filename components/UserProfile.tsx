@@ -166,7 +166,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                     await StudentService.update(existingRecords[0].id, {
                         pixKey: pixKey,
                         name: name,
-                        avatar: avatarUrl
+                        avatar: avatarUrl,
+                        bookingEnabled: attendanceBookingEnabled
                     });
                 } else {
                     // Create basic instructor record in students table if missing

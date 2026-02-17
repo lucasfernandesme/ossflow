@@ -462,9 +462,24 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         try {
           await StudentService.createStudentAuth(student?.id || studentData.id, authEmail, authPassword);
           setHasAuth(true);
-        } catch (authError) {
+        } catch (authError: any) {
           console.error("Erro ao criar acesso automático:", authError);
-          // We don't block the main save if only auth fails, but we log it
+          const errorMsg = authError.message || '';
+
+          // Check for common duplicate email errors
+          if (errorMsg.includes('already') || errorMsg.includes('exists') || errorMsg.includes('duplicate') || errorMsg.includes('já existe')) {
+            setMessage({
+              type: 'error',
+              text: `❌ O email "${authEmail}" já está em uso por outro usuário. Use um email diferente para criar o acesso do aluno.`
+            });
+          } else {
+            setMessage({
+              type: 'error',
+              text: 'Erro ao criar acesso do aluno. Verifique se o email não está em uso.'
+            });
+          }
+          setSaving(false);
+          return;
         }
       }
 
