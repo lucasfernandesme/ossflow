@@ -47,6 +47,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
   const { user } = useAuth();
   const bookingEnabled = user?.user_metadata?.attendance_booking_enabled || false;
   const [bookedStudentIds, setBookedStudentIds] = useState<string[]>([]);
+  const [allClassBookings, setAllClassBookings] = useState<Record<string, string[]>>({});
 
   const [selectedDate, setSelectedDate] = useState(getLocalDateString());
   const [dailyLogs, setDailyLogs] = useState<{ class_id: string; student_id: string }[]>([]);
@@ -67,6 +68,23 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
       logsData.forEach(log => completed.add(log.class_id));
       setCompletedClasses(completed);
       setDailyLogs(logsData);
+
+      // Carregar agendamentos para todas as classes se booking estiver ativo
+      if (bookingEnabled) {
+        const bookingsMap: Record<string, string[]> = {};
+        await Promise.all(
+          classesData.map(async (cls) => {
+            try {
+              const ids = await BookingService.getClassBookings(cls.id, date);
+              bookingsMap[cls.id] = ids;
+            } catch (error) {
+              console.error(`Error fetching bookings for class ${cls.id}:`, error);
+              bookingsMap[cls.id] = [];
+            }
+          })
+        );
+        setAllClassBookings(bookingsMap);
+      }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -522,7 +540,9 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
                     ) : (
                       <>
                         <span className="text-[10px] font-black text-zinc-950 dark:text-white uppercase bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full">
-                          {students.filter(s => s.categories.includes(cls.targetCategory)).length} Alunos
+                          {bookingEnabled
+                            ? students.filter(s => s.categories.includes(cls.targetCategory) && (allClassBookings[cls.id] || []).includes(s.id)).length
+                            : students.filter(s => s.categories.includes(cls.targetCategory)).length} Alunos
                         </span>
                         <div className="flex items-center gap-1.5 text-zinc-950 dark:text-white">
                           <span className="text-[10px] font-black uppercase group-hover:underline">Iniciar</span>

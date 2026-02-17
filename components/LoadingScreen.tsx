@@ -17,14 +17,6 @@ const LoadingScreen: React.FC = () => {
                     />
                 </div>
             </div>
-
-            <div className="mt-12 flex flex-col items-center gap-3">
-                <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700 animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                </div>
-            </div>
         </div>
     );
 };

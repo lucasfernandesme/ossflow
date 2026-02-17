@@ -18,6 +18,16 @@ export const BookingService = {
     },
 
     async createBooking(studentId: string, classId: string, date: string, academyId: string) {
+        // Check if booking mode is enabled for this academy
+        const { data: { user: trainerUser }, error: userError } = await supabase.auth.admin.getUserById(academyId);
+
+        if (!userError && trainerUser) {
+            const bookingEnabled = trainerUser.user_metadata?.attendance_booking_enabled ?? true;
+            if (!bookingEnabled) {
+                throw new Error('O agendamento de aulas está desativado no momento.');
+            }
+        }
+
         const { data, error } = await supabase
             .from('bookings')
             .insert([{

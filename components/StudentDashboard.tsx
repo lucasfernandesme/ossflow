@@ -71,6 +71,7 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
     const [showEvolutionModal, setShowEvolutionModal] = useState(false);
     const [showMenu, setShowMenu] = useState(false);
     const [academyPix, setAcademyPix] = useState<string>('');
+    const [bookingEnabled, setBookingEnabled] = useState<boolean>(true);
 
     const todayStr = getLocalDateString(selectedDate);
     const dayOfWeek = selectedDate.getDay();
@@ -109,17 +110,17 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                     setAvailableClasses(classes);
                     setMyBookings(bookings);
 
-                    // Fetch Trainer's PIX key from the students table (where is_instructor = true)
-                    // We look for the instructor record belonging to the same academy (user_id)
+                    // Fetch Trainer's PIX key and booking settings from students table
                     const { data: trainerRecords, error: trainerError } = await supabase
                         .from('students')
-                        .select('pix_key')
+                        .select('pix_key, booking_enabled')
                         .eq('user_id', s.user_id)
                         .eq('is_instructor', true)
                         .limit(1);
 
                     if (trainerRecords && trainerRecords.length > 0) {
                         setAcademyPix(trainerRecords[0].pix_key || '');
+                        setBookingEnabled(trainerRecords[0].booking_enabled ?? true);
                     }
                 } else {
                     console.warn("No student profile linked to auth user:", user.id);
@@ -187,6 +188,10 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
     }, []);
 
     const handleBooking = async (classId: string) => {
+        if (!bookingEnabled) {
+            alert('🚫 O agendamento de aulas está desativado no momento. Entre em contato com a academia.');
+            return;
+        }
         if (!studentData) return;
         setIsBooking(classId);
         try {
@@ -204,9 +209,15 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                 // Refresh bookings or add manually
                 setMyBookings([...myBookings, { ...newBooking, classes: availableClasses.find(c => c.id === classId) }]);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Booking error:", error);
-            alert("Erro ao processar agendamento.");
+            // Check if error message indicates booking is disabled
+            const errorMessage = error?.message || error?.toString() || '';
+            if (errorMessage.includes('disabled') || errorMessage.includes('desativado')) {
+                alert("🚫 O agendamento de aulas está desativado no momento. Entre em contato com a academia para mais informações.");
+            } else {
+                alert("Erro ao processar agendamento.");
+            }
         } finally {
             setIsBooking(null);
         }
@@ -286,6 +297,7 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                                 >
                                     <Icons.User width={16} height={16} /> Meu Perfil
                                 </button>
+
                                 <button
                                     onClick={() => { setShowPixModal(true); setShowMenu(false); }}
                                     className="w-full px-4 py-3 text-left text-[11px] font-black uppercase text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center gap-3"
@@ -421,13 +433,15 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
                                         <button
                                             onClick={() => handleBooking(cls.id)}
-                                            disabled={isBooking === cls.id}
-                                            className={`px-6 py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all active:scale-95 ${isBooked
-                                                ? 'bg-red-50 text-red-500 dark:bg-red-900/20'
-                                                : 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950'
+                                            disabled={!bookingEnabled || isBooking === cls.id}
+                                            className={`px-6 py-2.5 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${!bookingEnabled
+                                                    ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed'
+                                                    : isBooked
+                                                        ? 'bg-red-50 text-red-500 dark:bg-red-900/20 active:scale-95'
+                                                        : 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 active:scale-95'
                                                 }`}
                                         >
-                                            {isBooking === cls.id ? '...' : (isBooked ? 'Cancelar' : 'Agendar')}
+                                            {!bookingEnabled ? 'Desativado' : (isBooking === cls.id ? '...' : (isBooked ? 'Cancelar' : 'Agendar'))}
                                         </button>
                                     </div>
                                 );
@@ -441,17 +455,7 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                     </div>
                 </section>
 
-                {/* Próximas Graduações ou Info Extra */}
-                <div className="grid grid-cols-2 gap-4 pb-12">
-                    <div className="bg-zinc-950 dark:bg-white p-4 rounded-3xl text-white dark:text-zinc-950 space-y-1 shadow-lg">
-                        <p className="text-[8px] font-black uppercase tracking-widest opacity-60">Status de Pagamento</p>
-                        <p className="text-xl font-black uppercase tracking-tighter">Em Dia</p>
-                    </div>
-                    <div className="bg-emerald-500 p-4 rounded-3xl text-white space-y-1 shadow-lg">
-                        <p className="text-[8px] font-black uppercase tracking-widest opacity-60">Frequência</p>
-                        <p className="text-xl font-black uppercase tracking-tighter">92%</p>
-                    </div>
-                </div>
+
             </main>
 
             {/* Modals */}
