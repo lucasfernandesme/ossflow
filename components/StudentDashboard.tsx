@@ -244,10 +244,9 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col">
             {/* Header */}
             <header
-                className="flex-none w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between fixed top-0 left-0 right-0 transition-all duration-300 shadow-sm"
+                className="flex-none h-16 w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between fixed left-0 right-0 transition-all duration-300 shadow-sm"
                 style={{
-                    height: 'calc(4rem + env(safe-area-inset-top, 0px))',
-                    paddingTop: 'env(safe-area-inset-top, 0px)'
+                    top: 'env(safe-area-inset-top, 0px)'
                 }}
             >
                 {/* Theme Toggle (Left) */}
