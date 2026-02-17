@@ -27,6 +27,8 @@ import UserProfile from './components/UserProfile';
 import StudentDashboard from './components/StudentDashboard';
 import LoadingScreen from './components/LoadingScreen';
 
+import { Capacitor } from '@capacitor/core';
+
 const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void }> = ({ isDarkMode, setIsDarkMode }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showProfile, setShowProfile] = useState(false);
@@ -36,6 +38,8 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   const [studentFilter, setStudentFilter] = useState<'all' | 'graduation'>('all');
   const { user, loading, signOut, passwordRecoveryMode } = useAuth();
   const [loadingData, setLoadingData] = useState(true);
+
+  const isAndroid = Capacitor.getPlatform() === 'android';
 
   // UseEffect para carregar categorias iniciais
   React.useEffect(() => {
@@ -166,7 +170,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   return (
     <>
       {/* Mobile/Desktop Header */}
-      <header className="flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0 pt-[calc(1rem+env(safe-area-inset-top))] pb-4">
+      <header className={`flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0 pb-4 ${isAndroid ? 'pt-12' : 'pt-[calc(1rem+env(safe-area-inset-top))]'}`}>
         {/* Left: Theme Toggle */}
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
