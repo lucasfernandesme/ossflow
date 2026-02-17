@@ -124,7 +124,7 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 transition-colors relative">
             {/* Header */}
-            <header className="absolute top-0 left-0 w-full h-16 flex items-center justify-between px-6 z-50 bg-slate-50/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-zinc-800/50">
+            <header className="absolute top-0 left-0 w-full h-16 flex items-center justify-between px-6 z-50 bg-slate-50/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-zinc-800/50 pt-[calc(1rem+env(safe-area-inset-top))] pb-4">
                 <button
                     onClick={() => setIsDarkMode(!isDarkMode)}
                     className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-zinc-900 dark:text-white"

@@ -166,7 +166,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   return (
     <>
       {/* Mobile/Desktop Header */}
-      <header className="flex-none h-16 w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0">
+      <header className="flex-none h-16 w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0 pt-[calc(1rem+env(safe-area-inset-top))] pb-4">
         {/* Left: Theme Toggle */}
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
