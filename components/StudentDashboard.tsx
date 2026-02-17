@@ -246,7 +246,8 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
             <header
                 className="flex-none h-16 w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between fixed left-0 right-0 transition-all duration-300 shadow-sm"
                 style={{
-                    top: 'calc(env(safe-area-inset-top, 0px) + 24px)'
+                    top: 'env(safe-area-inset-top, 0px)',
+                    marginTop: '24px'
                 }}
             >
                 {/* Theme Toggle (Left) */}
