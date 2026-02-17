@@ -503,7 +503,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
 
   return (
     <div className="fixed inset-0 bg-white dark:bg-zinc-950 z-[60] flex flex-col animate-in fade-in duration-500 overflow-y-auto no-scrollbar lg:relative lg:inset-auto lg:min-h-screen lg:rounded-3xl lg:shadow-2xl">
-      <header className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 p-4 sticky top-0 z-50 flex items-center justify-between pt-[calc(1rem+env(safe-area-inset-top))] pb-4">
+      <header className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-4 sticky top-0 z-50 flex items-center justify-between pt-[calc(1rem+env(safe-area-inset-top))] pb-4">
         <button
           onClick={onBack}
           className="w-10 h-10 bg-white dark:bg-zinc-800 rounded-xl flex items-center justify-center shadow-sm hover:scale-105 active:scale-95 transition-all text-zinc-950 dark:text-white border border-zinc-100 dark:border-zinc-700"

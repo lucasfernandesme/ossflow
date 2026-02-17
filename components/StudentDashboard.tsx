@@ -244,7 +244,7 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col">
             {/* Header */}
             <header
-                className="flex-none h-16 w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between sticky top-0 transition-all duration-300 shadow-sm pt-[calc(1rem+env(safe-area-inset-top))] pb-4"
+                className="flex-none w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between sticky top-0 transition-all duration-300 shadow-sm pt-[calc(1rem+env(safe-area-inset-top))] pb-4"
             >
                 {/* Theme Toggle (Left) */}
                 <button
