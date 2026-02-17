@@ -243,7 +243,10 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col">
             {/* Header */}
-            <header className="flex-none h-16 w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between fixed top-0 left-0 right-0 transition-all duration-300 shadow-sm">
+            <header
+                className="flex-none h-16 w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between fixed left-0 right-0 transition-all duration-300 shadow-sm"
+                style={{ top: 'env(safe-area-inset-top, 0px)' }}
+            >
                 {/* Theme Toggle (Left) */}
                 <button
                     onClick={() => setIsDarkMode(!isDarkMode)}
@@ -316,7 +319,10 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                 </div>
             </header>
 
-            <main className="flex-1 p-6 space-y-8 max-w-2xl mx-auto w-full pt-28 pb-8 animate-in slide-in-from-bottom-4 duration-700 delay-150">
+            <main
+                className="flex-1 p-6 space-y-8 max-w-2xl mx-auto w-full pb-8 animate-in slide-in-from-bottom-4 duration-700 delay-150"
+                style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top, 0px) + 3rem)' }}
+            >
                 {/* Perfil e Progresso */}
                 <section className="bg-white dark:bg-zinc-900 rounded-[32px] p-6 shadow-xl border border-zinc-100 dark:border-zinc-800 flex flex-col items-center relative overflow-hidden">
                     {/* Background decoration */}
