@@ -297,6 +297,17 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                             />
                         </div>
 
+                        <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Email de Login</label>
+                            <input
+                                type="email"
+                                value={user?.email || ''}
+                                disabled
+                                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-500 font-bold text-sm cursor-not-allowed outline-none"
+                            />
+                            <p className="text-[9px] text-zinc-500 font-bold uppercase mt-1 ml-1 leading-tight italic">Este é seu email de acesso ao sistema. Não pode ser alterado.</p>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Telefone / Celular</label>
