@@ -243,7 +243,7 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col animate-in fade-in duration-500">
             {/* Header */}
-            <header className="flex-none h-16 w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between sticky top-0">
+            <header className="flex-none h-16 w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0">
                 {/* Theme Toggle (Left) */}
                 <button
                     onClick={() => setIsDarkMode(!isDarkMode)}
@@ -261,9 +261,9 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                     <div className="relative">
                         {/* Glow Effect */}
                         <div className="absolute inset-0 bg-zinc-900 dark:bg-white rounded-full blur-xl opacity-20 animate-logo-pulse"></div>
-                        <img src="/logo.png" alt="Ossflow Logo" className="w-8 h-8 rounded-full object-cover shadow-sm relative z-10 animate-logo-pulse" />
+                        <img src="/logo.png" alt="Ossflow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg relative z-10 animate-logo-pulse" />
                     </div>
-                    <span className="font-black italic tracking-tighter text-lg bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase">Ossflow</span>
+                    <span className="font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase">Ossflow</span>
                 </div>
 
                 <div className="relative z-10">
