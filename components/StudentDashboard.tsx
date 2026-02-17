@@ -243,7 +243,7 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col animate-in fade-in duration-500">
             {/* Header */}
-            <header className="flex-none h-16 w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0">
+            <header className="flex-none h-16 w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between sticky top-0">
                 {/* Theme Toggle (Left) */}
                 <button
                     onClick={() => setIsDarkMode(!isDarkMode)}
