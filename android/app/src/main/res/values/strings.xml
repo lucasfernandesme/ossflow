@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">OssFlow</string>
-    <string name="title_activity_main">OssFlow</string>
+    <string name="app_name">BjjFlow</string>
+    <string name="title_activity_main">BjjFlow</string>
     <string name="package_name">com.ossflow.app</string>
     <string name="custom_url_scheme">com.ossflow.app</string>
 </resources>

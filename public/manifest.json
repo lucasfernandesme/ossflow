@@ -1,6 +1,6 @@
 {
-    "name": "OssFlow - Gestão de Jiu-Jitsu",
-    "short_name": "OssFlow",
+    "name": "BjjFlow - Gestão de Jiu-Jitsu",
+    "short_name": "BjjFlow",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#09090b",

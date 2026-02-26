@@ -138,7 +138,7 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
 
                 <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
                     <img src="/logo.png" alt="Ossflow Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
-                    <span className="font-black italic tracking-tighter text-lg text-zinc-900 dark:text-white uppercase">OssFlow</span>
+                    <span className="font-black italic tracking-tighter text-lg text-zinc-900 dark:text-white uppercase">BjjFlow</span>
                 </div>
             </header>
 

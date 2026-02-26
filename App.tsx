@@ -186,7 +186,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         {/* Center: Logo */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
           <img src="/logo.png" alt="Ossflow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg" />
-          <span className="font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">Ossflow</span>
+          <span className="font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
         </div>
 
         {/* Right: Profile Button & Dropdown */}

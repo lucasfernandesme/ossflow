@@ -515,8 +515,7 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 text-zinc-400 dark:text-zinc-500 mb-2">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                  <div className="flex items-center text-zinc-400 dark:text-zinc-500 mb-2 ml-9">
                     <span className="text-[11px] font-black tracking-widest uppercase">{cls.startTime} - {cls.endTime}</span>
                   </div>
 
