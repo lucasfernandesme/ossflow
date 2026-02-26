@@ -402,10 +402,14 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                     <p className="text-zinc-600 dark:text-zinc-400 text-xs mt-0.5 leading-relaxed font-bold">Aproveite todos os recursos do sistema. Para continuar usando após o teste, realize a assinatura.</p>
                   </div>
                 </div>
-                {!isAndroid && !Capacitor.isNativePlatform() && (
+                {!isAndroid && !Capacitor.isNativePlatform() ? (
                   <button onClick={() => setActiveTab('subscription')} className="w-full sm:w-auto whitespace-nowrap px-6 py-3 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md">
                     Assinar Agora
                   </button>
+                ) : (
+                  <p className="w-full sm:w-auto whitespace-nowrap px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest rounded-xl text-center">
+                    Acesse pelo Computador
+                  </p>
                 )}
               </div>
             )}
