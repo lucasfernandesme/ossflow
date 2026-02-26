@@ -44,10 +44,10 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
   const isAndroid = Capacitor.getPlatform() === 'android';
 
-  const isBlocked = React.useMemo(() => {
-    if (!user) return false;
-    if (user.user_metadata?.role === 'student') return false;
-    if (user.user_metadata?.subscription_status === 'active') return false;
+  const { isBlocked, isInTrial, remainingTrialDays } = React.useMemo(() => {
+    if (!user) return { isBlocked: false, isInTrial: false, remainingTrialDays: 0 };
+    if (user.user_metadata?.role === 'student') return { isBlocked: false, isInTrial: false, remainingTrialDays: 0 };
+    if (user.user_metadata?.subscription_status === 'active') return { isBlocked: false, isInTrial: false, remainingTrialDays: 0 };
 
     // Trial check
     const createdAt = new Date(user.created_at || Date.now());
@@ -58,7 +58,14 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
     const diffTime = Math.abs(now.getTime() - createdAt.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    return diffDays > 7;
+    const remainingDays = 7 - diffDays;
+    const blocked = diffDays > 7;
+
+    return {
+      isBlocked: blocked,
+      isInTrial: !blocked,
+      remainingTrialDays: Math.max(0, remainingDays)
+    };
   }, [user]);
 
   // UseEffect para carregar categorias iniciais
@@ -384,7 +391,27 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
         <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64'} ${selectedStudent || activeTab === 'billing' || activeTab === 'subscription' ? 'h-full overflow-hidden' : 'p-4 lg:p-8 overflow-y-auto pb-4'}`}>
           <div className={`${selectedStudent || activeTab === 'billing' || activeTab === 'subscription' ? '' : 'max-w-7xl mx-auto'} flex flex-col h-full`}>
-            {renderContent()}
+            {isInTrial && activeTab !== 'subscription' && !selectedStudent && (
+              <div className="mb-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/50 rounded-2xl p-4 lg:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in slide-in-from-top-4">
+                <div className="flex items-start gap-3 lg:gap-4">
+                  <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-0">
+                    <Icons.Award size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-zinc-900 dark:text-white font-black text-sm uppercase tracking-tight">Período de Teste: {remainingTrialDays} {remainingTrialDays === 1 ? 'dia restante' : 'dias restantes'}</h3>
+                    <p className="text-zinc-600 dark:text-zinc-400 text-xs mt-0.5 leading-relaxed font-bold">Aproveite todos os recursos do sistema. Para continuar usando após o teste, realize a assinatura.</p>
+                  </div>
+                </div>
+                {!isAndroid && !Capacitor.isNativePlatform() && (
+                  <button onClick={() => setActiveTab('subscription')} className="w-full sm:w-auto whitespace-nowrap px-6 py-3 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md">
+                    Assinar Agora
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="flex-1 flex flex-col h-full">
+              {renderContent()}
+            </div>
           </div>
         </main>
       </div>
