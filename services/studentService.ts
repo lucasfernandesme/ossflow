@@ -290,6 +290,56 @@ export const StudentService = {
         return counts;
     },
 
+    async getMonthlyRanking(month: number, year: number) {
+        try {
+            // Criar datas de início e fim do mês no fuso local mas formatadas como YYYY-MM-DD
+            // month em JS é 0-indexed se usado em new Date(year, monthIndex), 
+            // mas vamos assumir que month vem 1-12.
+            const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+            const endDateObj = new Date(year, month, 0); // último dia do mês
+            const endDate = `${year}-${String(month).padStart(2, '0')}-${String(endDateObj.getDate()).padStart(2, '0')}`;
+
+            const { data: logs, error: logsError } = await supabase
+                .from('attendance_logs')
+                .select('student_id')
+                .gte('attendance_date', startDate)
+                .lte('attendance_date', endDate);
+
+            if (logsError) throw logsError;
+
+            // Agrupar contagens por student_id
+            const trainingCounts: Record<string, number> = {};
+            logs?.forEach(log => {
+                trainingCounts[log.student_id] = (trainingCounts[log.student_id] || 0) + 1;
+            });
+
+            if (Object.keys(trainingCounts).length === 0) return [];
+
+            // Buscar dados dos alunos que treinaram
+            const { data: students, error: studentsError } = await supabase
+                .from('students')
+                .select('id, name, belt, avatar')
+                .in('id', Object.keys(trainingCounts));
+
+            if (studentsError) throw studentsError;
+
+            // Combinar os dados e ordenar
+            const ranking = students?.map(student => ({
+                id: student.id,
+                name: student.name,
+                belt: student.belt,
+                avatar: student.avatar,
+                trainings: trainingCounts[student.id] || 0
+            }))
+            .sort((a, b) => b.trainings - a.trainings) || [];
+
+            return ranking;
+        } catch (error) {
+            console.error("Erro ao buscar ranking mensal:", error);
+            throw error;
+        }
+    },
+
     async delete(id: string) {
         const { error } = await supabase
             .from('students')

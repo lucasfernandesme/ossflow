@@ -11,6 +11,8 @@ import AttendanceReport from './components/AttendanceReport';
 import GeneralReports from './components/GeneralReports';
 import FinanceScreen from './components/FinanceScreen';
 import FinancialReportsScreen from './components/FinancialReportsScreen';
+import RankingScreen from './components/RankingScreen';
+import SubscriptionScreen from './components/SubscriptionScreen';
 import ReportsMenu from './components/ReportsMenu';
 import StudentDetails from './components/StudentDetails';
 import CategorySection from './components/CategorySection';
@@ -28,6 +30,7 @@ import StudentDashboard from './components/StudentDashboard';
 import LoadingScreen from './components/LoadingScreen';
 
 import { Capacitor } from '@capacitor/core';
+import { supabase } from './services/supabase';
 
 const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void }> = ({ isDarkMode, setIsDarkMode }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -41,9 +44,29 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
   const isAndroid = Capacitor.getPlatform() === 'android';
 
+  const isBlocked = React.useMemo(() => {
+    if (!user) return false;
+    if (user.user_metadata?.role === 'student') return false;
+    if (user.user_metadata?.subscription_status === 'active') return false;
+
+    // Trial check
+    const createdAt = new Date(user.created_at || Date.now());
+    createdAt.setHours(0, 0, 0, 0);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const diffTime = Math.abs(now.getTime() - createdAt.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays > 7;
+  }, [user]);
+
   // UseEffect para carregar categorias iniciais
   React.useEffect(() => {
     if (user) {
+      // Força a atualização da sessão para pegar mudanças feitas via Webhook
+      supabase.auth.refreshSession();
+
       import('./services/categoryService').then(({ CategoryService }) => {
         CategoryService.getAll().then(cats => {
           if (cats.length > 0) setCategories(cats);
@@ -96,6 +119,8 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         return <Dashboard onGraduationClick={goToGraduation} onHistoryClick={() => setActiveTab('report-attendance')} />;
       case 'attendance':
         return <AttendanceSection categories={categories} />;
+      case 'ranking':
+        return <RankingScreen onBack={() => setActiveTab('dashboard')} />;
       case 'reports':
         return (
           <ReportsMenu
@@ -162,10 +187,51 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
             onBack={() => setActiveTab('dashboard')}
           />
         );
+      case 'subscription':
+        return <SubscriptionScreen onBack={() => setActiveTab('dashboard')} />;
       default:
         return <Dashboard onGraduationClick={goToGraduation} onHistoryClick={() => setActiveTab('reports')} />;
     }
   };
+
+  if (isBlocked) {
+    return (
+      <div className="flex flex-col h-screen overflow-hidden">
+        <header className={`flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-6 flex items-center justify-between sticky top-0 py-4 ${isAndroid ? 'pt-16' : 'pt-[calc(1rem+env(safe-area-inset-top))]'}`}>
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="Ossflow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg" />
+            <span className="font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
+          </div>
+          <button
+            onClick={() => signOut()}
+            className="text-xs font-black text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/10 px-4 py-2 rounded-xl transition-colors uppercase tracking-widest"
+          >
+            Sair
+          </button>
+        </header>
+
+        <main className="flex-1 overflow-y-auto custom-scrollbar bg-zinc-50 dark:bg-zinc-950 p-4 lg:p-8">
+          <div className="max-w-4xl mx-auto h-full space-y-8 pb-10">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 p-6 rounded-3xl text-center space-y-2 shadow-lg shadow-red-500/5 animate-in fade-in slide-in-from-top-4">
+              <div className="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+              </div>
+              <h3 className="font-black uppercase tracking-tight text-xl">Período de Teste Expirado</h3>
+              <p className="font-bold text-sm leading-relaxed max-w-xl mx-auto">
+                Seu período gratuito de 7 dias chegou ao fim. Para continuar gerenciando seus alunos e utilizando o sistema, realize a assinatura do Plano Premium.
+              </p>
+              <p className="font-bold text-xs mt-4 text-red-400">
+                Se você já realizou o pagamento, aguarde alguns instantes e recarregue essa página para que a liberação seja atualizada.
+              </p>
+            </div>
+
+            {/* Passamos o onBack vazio ou sem efeito, pois o botão estará oculto via isBlocked */}
+            <SubscriptionScreen isBlocked={true} onBack={() => { }} />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -269,6 +335,19 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                   Financeiro
                 </button>
 
+                {!isAndroid && !Capacitor.isNativePlatform() && (
+                  <button
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      setActiveTab('subscription');
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors flex items-center gap-2"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10" /><path d="m16 10-5.5 5.5L8 13" /></svg>
+                    Assinatura
+                  </button>
+                )}
+
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);
@@ -301,10 +380,10 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
       {showProfile && <UserProfile onClose={() => setShowProfile(false)} />}
 
       <div className="flex-1 flex overflow-hidden">
-        <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} className="hidden lg:flex" />
+        <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} isNativeApp={isAndroid || Capacitor.isNativePlatform()} className="hidden lg:flex" />
 
-        <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64'} ${selectedStudent || activeTab === 'billing' ? 'h-full overflow-hidden' : 'p-4 lg:p-8 overflow-y-auto pb-4'}`}>
-          <div className={`${selectedStudent || activeTab === 'billing' ? '' : 'max-w-7xl mx-auto'} flex flex-col h-full`}>
+        <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64'} ${selectedStudent || activeTab === 'billing' || activeTab === 'subscription' ? 'h-full overflow-hidden' : 'p-4 lg:p-8 overflow-y-auto pb-4'}`}>
+          <div className={`${selectedStudent || activeTab === 'billing' || activeTab === 'subscription' ? '' : 'max-w-7xl mx-auto'} flex flex-col h-full`}>
             {renderContent()}
           </div>
         </main>

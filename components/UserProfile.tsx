@@ -213,6 +213,29 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
         }
     };
 
+    const toggleSubscriptionTest = async () => {
+        try {
+            setLoading(true);
+            const isCurrentlyActive = user?.user_metadata?.subscription_status === 'active';
+            const { error } = await supabase.auth.updateUser({
+                data: {
+                    subscription_status: isCurrentlyActive ? 'inactive' : 'active'
+                }
+            });
+
+            if (error) throw error;
+            setMessage({ type: 'success', text: isCurrentlyActive ? 'Assinatura cancelada (Teste)' : 'Assinatura ativada (Teste)' });
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } catch (error: any) {
+            setMessage({ type: 'error', text: 'Erro ao alterar assinatura de teste.' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (!user) return null;
 
     return (
@@ -398,6 +421,25 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                                 )}
                             </div>
                         </div>
+
+                        {/* SEÇÃO TEMPORÁRIA E EXCLUSIVA PARA TESTES - DEVE SER REMOVIDA EM PRODUÇÃO */}
+                        <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                            <h3 className="text-sm font-black text-rose-500 uppercase mb-2 flex items-center gap-2">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="m12 14 4-4" /><path d="M3.34 19a10 10 0 1 1 17.32 0" /></svg>
+                                Ambiente de Testes (Debug)
+                            </h3>
+                            <button
+                                onClick={toggleSubscriptionTest}
+                                disabled={loading}
+                                className="w-full py-3 bg-rose-50 dark:bg-rose-900/10 text-rose-600 dark:text-rose-400 font-bold text-xs uppercase rounded-xl border border-rose-200 dark:border-rose-900/50 hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors"
+                            >
+                                {user?.user_metadata?.subscription_status === 'active'
+                                    ? 'Revogar Assinatura (Bloquear)'
+                                    : 'Simular Pagamento (Liberar)'}
+                            </button>
+                            <p className="text-[9px] text-zinc-500 font-bold uppercase mt-2 text-center">Use isso para testar a tela de bloqueio de assinatura.</p>
+                        </div>
+                        {/* FIM SEÇÃO TEMPORÁRIA */}
 
                         {message && (
                             <div className={`p-3 rounded-xl text-xs font-bold text-center ${message.type === 'success' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400'}`}>
