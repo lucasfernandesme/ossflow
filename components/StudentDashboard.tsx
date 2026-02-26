@@ -78,7 +78,7 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!user) return;
+            if (!user?.id) return;
             try {
                 // Fetch student record linked to this auth user
                 const { data: studentRecords, error: studentError } = await supabase
@@ -133,7 +133,7 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
             }
         };
         fetchData();
-    }, [user, todayStr]);
+    }, [user?.id, todayStr]);
 
     const filteredClasses = useMemo(() => {
         return availableClasses.filter(cls => {

@@ -63,7 +63,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
   // UseEffect para carregar categorias iniciais
   React.useEffect(() => {
-    if (user) {
+    if (user?.id) {
       // Força a atualização da sessão para pegar mudanças feitas via Webhook
       supabase.auth.refreshSession();
 
@@ -73,7 +73,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         });
       });
     }
-  }, [user]);
+  }, [user?.id]);
 
   if (loading) {
     return <LoadingScreen />;

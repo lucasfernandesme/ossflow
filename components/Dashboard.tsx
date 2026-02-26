@@ -80,7 +80,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick, onHistoryClick
 
   React.useEffect(() => {
     fetchData();
-  }, [user]);
+  }, [user?.id]);
 
   // Gera os dias da semana (Segunda a Domingo)
   const weekDays = useMemo(() => {
