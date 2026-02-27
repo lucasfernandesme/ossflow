@@ -18,13 +18,7 @@ const SubscriptionScreen: React.FC<SubscriptionScreenProps> = ({ onBack, isBlock
                 <div className="w-20 h-20 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-zinc-500"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line x1="12" y1="18" x2="12.01" y2="18" /></svg>
                 </div>
-                <h2 className="text-xl font-black text-zinc-950 dark:text-white uppercase tracking-tight">Gerenciamento no App</h2>
-                <p className="text-sm font-bold text-zinc-500 dark:text-zinc-400">
-                    Para gerenciar sua assinatura ou fazer upgrade do plano, por favor <span className="text-zinc-950 dark:text-white">acesse o sistema pelo navegador</span> do seu computador ou celular.
-                </p>
-                <button onClick={onBack} className="mt-8 px-6 py-3 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-xs font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-transform">
-                    Voltar ao Início
-                </button>
+                <h2 className="text-xl font-black text-zinc-950 dark:text-white uppercase tracking-tight">Assinatura</h2>
             </div>
         );
     }
