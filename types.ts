@@ -65,6 +65,7 @@ export interface TrainingClass {
   targetCategory: string;
   studentsCount: number;
   days: number[];
+  isActive?: boolean;
 }
 
 export interface Video {

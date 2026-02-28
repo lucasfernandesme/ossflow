@@ -52,16 +52,6 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isNativeApp 
               </button>
             </div>
           )}
-
-          <div className="flex items-center gap-3 bg-zinc-900 p-3 rounded-xl border border-zinc-800">
-            <div className="w-10 h-10 rounded-full bg-zinc-700 border-2 border-zinc-600/30 overflow-hidden shadow-inner">
-              <img src="https://picsum.photos/seed/sensei/200" alt="Sensei Profile" />
-            </div>
-            <div className="overflow-hidden flex-1">
-              <p className="text-sm font-bold truncate text-white">Sensei Renzo</p>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Black Belt</p>
-            </div>
-          </div>
         </div>
       </div>
 

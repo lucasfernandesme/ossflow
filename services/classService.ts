@@ -8,6 +8,7 @@ export const ClassService = {
             .from('classes')
             .select('*')
             .eq('user_id', trainerId || (await supabase.auth.getUser()).data.user?.id)
+            .neq('is_active', false) // Retorna null e true
             .order('start_time', { ascending: true });
 
         if (error) throw error;
@@ -21,6 +22,7 @@ export const ClassService = {
             type: c.type,
             targetCategory: c.target_category,
             days: c.days,
+            isActive: c.is_active !== false,
             studentsCount: 0 // TODO: Calcular contagem real de alunos matriculados
         })) as TrainingClass[];
     },
@@ -37,7 +39,8 @@ export const ClassService = {
             instructor: trainingClass.instructor,
             type: trainingClass.type,
             target_category: trainingClass.targetCategory,
-            days: trainingClass.days
+            days: trainingClass.days,
+            is_active: true
         };
 
         const { data, error } = await supabase
@@ -51,54 +54,12 @@ export const ClassService = {
     },
 
     async delete(id: string) {
-        // 1. Buscar logs de presença associados a essa aula para saber quem teve presença
-        const { data: logs, error: logsError } = await supabase
-            .from('attendance_logs')
-            .select('student_id')
-            .eq('class_id', id);
-
-        if (logsError) throw logsError;
-
-        if (logs && logs.length > 0) {
-            // Agrupar contagem por aluno (caso um aluno tenha >1 presença na mesma aula, o que seria estranho mas possível por erro)
-            const studentCounts: Record<string, number> = {};
-            logs.forEach(log => {
-                studentCounts[log.student_id] = (studentCounts[log.student_id] || 0) + 1;
-            });
-
-            // 2. Decrementar o contador de cada aluno
-            for (const [studentId, count] of Object.entries(studentCounts)) {
-                // Buscar aluno atual
-                const { data: student, error: fetchError } = await supabase
-                    .from('students')
-                    .select('total_classes_attended')
-                    .eq('id', studentId)
-                    .single();
-
-                if (!fetchError && student) {
-                    const currentTotal = student.total_classes_attended || 0;
-                    const newTotal = Math.max(0, currentTotal - count);
-
-                    await supabase
-                        .from('students')
-                        .update({ total_classes_attended: newTotal })
-                        .eq('id', studentId);
-                }
-            }
-
-            // 3. Excluir os logs de presença explicitamente
-            const { error: deleteLogsError } = await supabase
-                .from('attendance_logs')
-                .delete()
-                .eq('class_id', id);
-
-            if (deleteLogsError) throw deleteLogsError;
-        }
-
-        // 4. Excluir a aula
+        // Exclusão Lógica (Soft Delete)
+        // Apenas marca a aula como is_active = false
+        // Isso impede que a aula apareça nas futuras chamadas, mas preserva os logs do passado.
         const { error } = await supabase
             .from('classes')
-            .delete()
+            .update({ is_active: false })
             .eq('id', id);
 
         if (error) throw error;
