@@ -234,8 +234,8 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
       <div className="flex flex-col h-screen overflow-hidden">
         <header className={`flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-6 flex items-center justify-between sticky top-0 py-4 ${isAndroid ? 'pt-16' : 'pt-[calc(1rem+env(safe-area-inset-top))]'}`}>
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Ossflow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg" />
-            <span className="font-outfit font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
+            <img src="/logo.png" alt="BjjFlow Logo" className="h-8 w-auto object-contain drop-shadow-sm" />
+            <span className="font-outfit font-black italic tracking-tighter text-lg bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
           </div>
           <button
             onClick={() => signOut()}
@@ -286,8 +286,8 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
         {/* Center: Logo */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-          <img src="/logo.png" alt="Ossflow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg" />
-          <span className="font-outfit font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
+          <img src="/logo.png" alt="BjjFlow Logo" className="h-8 w-auto object-contain drop-shadow-sm" />
+          <span className="font-outfit font-black italic tracking-tighter text-lg bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
         </div>
 
         {/* Right: Profile Button & Dropdown */}

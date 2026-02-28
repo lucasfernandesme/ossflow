@@ -137,8 +137,8 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                 </button>
 
                 <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-                    <img src="/logo.png" alt="Ossflow Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
-                    <span className="font-outfit font-black italic tracking-tighter text-lg text-zinc-900 dark:text-white uppercase">BjjFlow</span>
+                    <img src="/logo.png" alt="BjjFlow Logo" className="h-8 w-auto object-contain drop-shadow-sm" />
+                    <span className="font-outfit font-black italic tracking-tighter text-base text-zinc-900 dark:text-white uppercase">BjjFlow</span>
                 </div>
 
                 {onBackToSite && (

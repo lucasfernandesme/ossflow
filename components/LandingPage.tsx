@@ -15,9 +15,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterReg
             {/* Header */}
             <header className="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <img src="/logo.png" alt="BjjFlow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg" />
-                        <span className="font-outfit font-black italic tracking-tighter text-2xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">
+                    <div className="flex items-center gap-1.5">
+                        <img src="/logo.png" alt="BjjFlow Logo" className="h-16 md:h-20 w-auto object-contain drop-shadow-sm" />
+                        <span className="font-outfit font-black italic tracking-tighter text-3xl md:text-4xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 -ml-1">
                             BjjFlow
                         </span>
                     </div>
