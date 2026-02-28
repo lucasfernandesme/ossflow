@@ -103,9 +103,23 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick, onHistoryClick
   const selectedDayOfWeek = selectedDate.getDay();
 
   const classesForDay = useMemo(() => {
-    return classes.filter(cls => cls.days.includes(selectedDayOfWeek))
-      .sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [classes, selectedDayOfWeek]);
+    return classes.filter(cls => {
+      // Regra 1: Tem que ser no dia da semana selecionado
+      if (!cls.days.includes(selectedDayOfWeek)) return false;
+
+      // Regra 2: Se não foi deletada, mostra sempre
+      if (!cls.deletedAt) return true;
+
+      // Regra 3: Foi deletada. Mostra (para ver histórico) APENAS SE
+      // a data selecionada for ESTRITAMENTE MENOR que a data em que foi deletada.
+      // Ou seja, se deletei dia 28/02, a aula mostra no dia 21/02 (< 28)
+      // mas esconde no dia 28/02 (28 não é menor que 28).
+      const deletedDateStr = new Date(cls.deletedAt).toISOString().split('T')[0];
+      const selectedDateStr = getLocalDateString(selectedDate);
+
+      return selectedDateStr < deletedDateStr;
+    }).sort((a, b) => a.startTime.localeCompare(b.startTime));
+  }, [classes, selectedDayOfWeek, selectedDate]);
 
   const eligibleCount = useMemo(() => {
     if (belts.length === 0) return 0;

@@ -66,6 +66,7 @@ export interface TrainingClass {
   studentsCount: number;
   days: number[];
   isActive?: boolean;
+  deletedAt?: string;
 }
 
 export interface Video {

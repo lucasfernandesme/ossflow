@@ -8,7 +8,6 @@ export const ClassService = {
             .from('classes')
             .select('*')
             .eq('user_id', trainerId || (await supabase.auth.getUser()).data.user?.id)
-            .neq('is_active', false) // Retorna null e true
             .order('start_time', { ascending: true });
 
         if (error) throw error;
@@ -23,6 +22,7 @@ export const ClassService = {
             targetCategory: c.target_category,
             days: c.days,
             isActive: c.is_active !== false,
+            deletedAt: c.deleted_at,
             studentsCount: 0 // TODO: Calcular contagem real de alunos matriculados
         })) as TrainingClass[];
     },
@@ -40,7 +40,8 @@ export const ClassService = {
             type: trainingClass.type,
             target_category: trainingClass.targetCategory,
             days: trainingClass.days,
-            is_active: true
+            is_active: true,
+            deleted_at: null
         };
 
         const { data, error } = await supabase
@@ -54,12 +55,14 @@ export const ClassService = {
     },
 
     async delete(id: string) {
-        // Exclusão Lógica (Soft Delete)
-        // Apenas marca a aula como is_active = false
-        // Isso impede que a aula apareça nas futuras chamadas, mas preserva os logs do passado.
+        // Exclusão Lógica (Soft Delete) c/ Timestamp
+        const nowIso = new Date().toISOString();
         const { error } = await supabase
             .from('classes')
-            .update({ is_active: false })
+            .update({
+                is_active: false,
+                deleted_at: nowIso
+            })
             .eq('id', id);
 
         if (error) throw error;
