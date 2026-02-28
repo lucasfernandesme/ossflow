@@ -1,7 +1,7 @@
 {
     "name": "BjjFlow - Gestão de Jiu-Jitsu",
     "short_name": "BjjFlow",
-    "start_url": "/",
+    "start_url": "/?mode=standalone",
     "display": "standalone",
     "background_color": "#09090b",
     "theme_color": "#09090b",

@@ -44,7 +44,8 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   const [loadingData, setLoadingData] = useState(true);
 
   // Controle da Landing Page
-  const [showLandingPage, setShowLandingPage] = useState(true);
+  const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches || window.location.search.includes('mode=standalone');
+  const [showLandingPage, setShowLandingPage] = useState(!isStandalonePWA);
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
   const isAndroid = Capacitor.getPlatform() === 'android';
