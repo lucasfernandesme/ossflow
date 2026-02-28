@@ -62,6 +62,24 @@ const SubscriptionScreen: React.FC<SubscriptionScreenProps> = ({ onBack, isBlock
                                         </div>
                                     </div>
                                     <p className="text-sm font-bold opacity-80 md:max-w-[200px] md:ml-auto">Obrigado por apoiar e utilizar o BjjFlow!</p>
+
+                                    <button
+                                        onClick={() => {
+                                            // Substitua pelo seu link real do portal do cliente Stripe (Customer Portal)
+                                            // Você pode pegar esse link em: https://dashboard.stripe.com/test/settings/billing/portal
+                                            const portalBaseUrl = 'https://billing.stripe.com/p/login/test_4gMfZa9Or0sgh2a4N19EI00';
+
+                                            const params = new URLSearchParams();
+                                            if (user?.email) params.append('prefilled_email', user.email);
+
+                                            const finalUrl = params.toString() ? `${portalBaseUrl}?${params.toString()}` : portalBaseUrl;
+                                            window.open(finalUrl, '_blank');
+                                        }}
+                                        className="mt-4 px-6 py-3 bg-white/10 hover:bg-white/20 text-white text-xs font-black uppercase tracking-widest rounded-xl transition-all border border-white/20 w-full md:w-auto md:ml-auto flex items-center justify-center gap-2"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 Z" /></svg>
+                                        Gerenciar Assinatura
+                                    </button>
                                 </div>
                             ) : (
                                 <>
