@@ -31,6 +31,7 @@ import LoadingScreen from './components/LoadingScreen';
 
 import { Capacitor } from '@capacitor/core';
 import { supabase } from './services/supabase';
+import { LandingPage } from './components/LandingPage';
 
 const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void }> = ({ isDarkMode, setIsDarkMode }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -41,6 +42,10 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   const [studentFilter, setStudentFilter] = useState<'all' | 'graduation'>('all');
   const { user, loading, signOut, passwordRecoveryMode } = useAuth();
   const [loadingData, setLoadingData] = useState(true);
+
+  // Controle da Landing Page
+  const [showLandingPage, setShowLandingPage] = useState(true);
+  const [authView, setAuthView] = useState<'login' | 'register'>('login');
 
   const isAndroid = Capacitor.getPlatform() === 'android';
 
@@ -92,7 +97,30 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   }
 
   if (!user) {
-    return <LoginScreen isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />;
+    if (showLandingPage && !isAndroid && !Capacitor.isNativePlatform()) {
+      return (
+        <LandingPage
+          onEnterApp={() => {
+            setAuthView('login');
+            setShowLandingPage(false);
+          }}
+          onEnterRegister={() => {
+            setAuthView('register');
+            setShowLandingPage(false);
+          }}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+        />
+      );
+    }
+    return (
+      <LoginScreen
+        isDarkMode={isDarkMode}
+        setIsDarkMode={setIsDarkMode}
+        defaultView={authView}
+        onBackToSite={() => setShowLandingPage(true)}
+      />
+    );
   }
 
   // Se for aluno, redireciona para o portal do aluno
@@ -207,7 +235,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         <header className={`flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-6 flex items-center justify-between sticky top-0 py-4 ${isAndroid ? 'pt-16' : 'pt-[calc(1rem+env(safe-area-inset-top))]'}`}>
           <div className="flex items-center gap-3">
             <img src="/logo.png" alt="Ossflow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg" />
-            <span className="font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
+            <span className="font-outfit font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
           </div>
           <button
             onClick={() => signOut()}
@@ -259,7 +287,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         {/* Center: Logo */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
           <img src="/logo.png" alt="Ossflow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg" />
-          <span className="font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
+          <span className="font-outfit font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
         </div>
 
         {/* Right: Profile Button & Dropdown */}

@@ -13,8 +13,8 @@ const maskPhone = (value: string) => {
         .replace(/(-\d{4})\d+?$/, "$1");
 };
 
-export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void }> = ({ isDarkMode, setIsDarkMode }) => {
-    const [view, setView] = useState<'login' | 'register' | 'forgot_password'>('login');
+export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void, onBackToSite?: () => void, defaultView?: 'login' | 'register' }> = ({ isDarkMode, setIsDarkMode, onBackToSite, defaultView = 'login' }) => {
+    const [view, setView] = useState<'login' | 'register' | 'forgot_password'>(defaultView);
     const [loginMode, setLoginMode] = useState<'instructor' | 'student'>('instructor');
 
     const [name, setName] = useState('');
@@ -138,8 +138,18 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
 
                 <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
                     <img src="/logo.png" alt="Ossflow Logo" className="w-8 h-8 rounded-full object-cover shadow-sm" />
-                    <span className="font-black italic tracking-tighter text-lg text-zinc-900 dark:text-white uppercase">BjjFlow</span>
+                    <span className="font-outfit font-black italic tracking-tighter text-lg text-zinc-900 dark:text-white uppercase">BjjFlow</span>
                 </div>
+
+                {onBackToSite && (
+                    <button
+                        onClick={onBackToSite}
+                        className="text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors flex items-center gap-1"
+                    >
+                        Site
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                    </button>
+                )}
             </header>
 
             <div className="w-full max-w-md space-y-8 mt-12">
