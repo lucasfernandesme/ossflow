@@ -119,7 +119,6 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         isDarkMode={isDarkMode}
         setIsDarkMode={setIsDarkMode}
         defaultView={authView}
-        onBackToSite={() => setShowLandingPage(true)}
       />
     );
   }
