@@ -137,7 +137,7 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                 </button>
 
                 <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-                    <img src="/logo.png" alt="BjjFlow Logo" className="h-10 w-auto object-contain drop-shadow-sm" />
+                    <img src="/logo.png" alt="BjjFlow Logo" className="h-10 w-auto object-contain drop-shadow-sm dark:bg-white dark:rounded-full dark:px-1" />
                     <span className="font-outfit font-black italic tracking-tighter text-xl text-zinc-900 dark:text-white uppercase">BjjFlow</span>
                 </div>
 

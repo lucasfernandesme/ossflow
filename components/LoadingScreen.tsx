@@ -13,7 +13,7 @@ const LoadingScreen: React.FC = () => {
                     <img
                         src="/logo.png"
                         alt="BjjFlow Logo"
-                        className="w-32 h-32 rounded-full object-cover shadow-2xl border-4 border-white dark:border-zinc-900"
+                        className="w-32 h-32 rounded-full object-cover shadow-2xl border-4 border-white dark:border-zinc-900 dark:bg-white dark:p-1"
                     />
                 </div>
             </div>
