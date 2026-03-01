@@ -29,9 +29,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterReg
                 <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 p-4 shadow-2xl animate-in slide-in-from-bottom-full duration-500 rounded-t-3xl">
                     <div className="max-w-md mx-auto flex items-start gap-4">
                         <div className="flex-1">
-                            <h4 className="font-black text-sm text-zinc-900 dark:text-white uppercase tracking-tight mb-1">Instale o BjjFlow</h4>
+                            <h4 className="font-black text-sm text-zinc-900 dark:text-white uppercase tracking-tight mb-1">Adicione o BjjFlow</h4>
                             <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium leading-relaxed">
-                                Adicione à sua tela inicial para uma experiência de aplicativo completa: toque em <span className="inline-block px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded mx-1">Compartilhar</span> e depois em <span className="inline-block px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded mx-1">Adicionar à Tela de Início</span>.
+                                Adicione à sua tela inicial para uma experiência de app: toque em <span className="inline-block px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded mx-1">Compartilhar</span> e depois em <span className="inline-block px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded mx-1">Adicionar à Tela de Início</span>.
                             </p>
                         </div>
                         <button
