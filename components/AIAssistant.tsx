@@ -10,7 +10,7 @@ interface Message {
 
 const AIAssistant: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'ai', content: 'Olá Sensei! Sou o seu assistente virtual do OssFlow App. Posso ajudar com técnicas de treino, análise de alunos ou gestão da sua academia. O que deseja saber hoje?' }
+    { role: 'ai', content: 'Olá Sensei! Sou o seu assistente virtual do BjjFlow. Posso ajudar com técnicas de treino, análise de alunos ou gestão da sua academia. O que deseja saber hoje?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);

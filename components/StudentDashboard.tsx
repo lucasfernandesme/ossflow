@@ -274,9 +274,9 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                     <div className="relative">
                         {/* Glow Effect */}
                         <div className="absolute inset-0 bg-zinc-900 dark:bg-white rounded-full blur-xl opacity-20 animate-logo-pulse"></div>
-                        <img src="/logo.png" alt="Ossflow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg relative z-10 animate-logo-pulse" />
+                        <img src="/logo.png" alt="BjjFlow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg relative z-10 animate-logo-pulse" />
                     </div>
-                    <span className="font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase">Ossflow</span>
+                    <span className="font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase">BjjFlow</span>
                 </div>
 
                 <div className="relative z-10">
