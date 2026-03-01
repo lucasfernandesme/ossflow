@@ -9,8 +9,40 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterRegister, isDarkMode, setIsDarkMode }) => {
+    const [showInstallPrompt, setShowInstallPrompt] = React.useState(false);
+
+    React.useEffect(() => {
+        // Simple iOS detection
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+        const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+
+        if (isIOS && isSafari && !isStandalone) {
+            setShowInstallPrompt(true);
+        }
+    }, []);
+
     return (
-        <div className={`min-h-screen font-sans selection:bg-emerald-500/30 ${isDarkMode ? 'dark bg-zinc-950 text-white' : 'bg-slate-50 text-zinc-900'}`}>
+        <div className={`min-h-screen font-sans selection:bg-emerald-500/30 ${isDarkMode ? 'dark bg-zinc-950 text-white' : 'bg-slate-50 text-zinc-900'} relative`}>
+            {/* Install Prompt iOS */}
+            {showInstallPrompt && (
+                <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 p-4 shadow-2xl animate-in slide-in-from-bottom-full duration-500 rounded-t-3xl">
+                    <div className="max-w-md mx-auto flex items-start gap-4">
+                        <div className="flex-1">
+                            <h4 className="font-black text-sm text-zinc-900 dark:text-white uppercase tracking-tight mb-1">Instale o BjjFlow</h4>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium leading-relaxed">
+                                Adicione à sua tela inicial para uma experiência de aplicativo completa: toque em <span className="inline-block px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded mx-1">Compartilhar</span> e depois em <span className="inline-block px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded mx-1">Adicionar à Tela de Início</span>.
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setShowInstallPrompt(false)}
+                            className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:text-zinc-900 dark:hover:text-white flex-shrink-0"
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Header */}
             <header className="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50">
