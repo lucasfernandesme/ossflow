@@ -300,15 +300,9 @@ const StudentList: React.FC<StudentListProps> = ({
             </div>
 
             {filteredStudents.length === 0 && (
-                <div className="p-20 text-center bg-white dark:bg-zinc-900 rounded-3xl border border-dashed border-zinc-100 dark:border-zinc-800">
-                    <div className="bg-zinc-50 dark:bg-zinc-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-200 dark:text-zinc-600">
-                        <Icons.Users />
-                    </div>
-                    <p className="text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest text-xs">Nenhum guerreiro encontrado.</p>
-                    {searchTerm ? (
-                        <p className="text-zinc-300 dark:text-zinc-600 text-xs mt-2">Tente buscar por outro nome.</p>
-                    ) : (
-                        <button onClick={onAddStudent} className="mt-4 text-zinc-950 dark:text-white font-black text-xs uppercase hover:underline">Cadastrar primeiro aluno</button>
+                <div className="text-zinc-500 dark:text-zinc-600 text-center py-12 font-bold uppercase tracking-widest text-xs border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-3xl w-full">
+                    {searchTerm ? "Nenhum guerreiro encontrado" : (
+                        <button onClick={onAddStudent} className="text-zinc-950 dark:text-white font-black hover:underline">Cadastrar primeiro aluno</button>
                     )}
                 </div>
             )}

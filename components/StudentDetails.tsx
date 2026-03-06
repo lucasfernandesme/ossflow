@@ -7,6 +7,7 @@ import { Icons } from '../constants';
 import { hasRedBar } from '../utils/beltUtils';
 import { getLocalDateString } from '../utils/dateUtils';
 import BeltEditModal from './BeltEditModal';
+import NotificationModal from './NotificationModal';
 
 interface StudentDetailsProps {
   onBack: () => void;
@@ -223,6 +224,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
   const [draftStripes, setDraftStripes] = useState<number>(student?.stripes || 0);
   const [draftGraduationDate, setDraftGraduationDate] = useState<string>(student?.lastGraduationDate || getLocalDateString());
   const [draftBelt, setDraftBelt] = useState<string>(student?.belt || 'Faixa Branca');
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
 
   // History State
   const [showHistory, setShowHistory] = useState(false);
@@ -635,6 +637,16 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
             >
               <Icons.History className="w-3 h-3" />
               Evolução
+            </button>
+          )}
+
+          {student?.id && (
+            <button
+              onClick={() => setShowNotificationModal(true)}
+              className={`flex-1 px-2 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 whitespace-nowrap border bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600`}
+            >
+              <Icons.Bell className="w-3 h-3" />
+              Notificar
             </button>
           )}
         </div>
@@ -1148,7 +1160,14 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
           />
         )
       }
-    </div >
+      <NotificationModal
+        isOpen={showNotificationModal}
+        onClose={() => setShowNotificationModal(false)}
+        studentName={name}
+        studentId={student?.id || ''}
+        fcmToken={(student as any)?.fcm_token || student?.fcmToken}
+      />
+    </div>
   );
 };
 

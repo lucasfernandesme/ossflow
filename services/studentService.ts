@@ -24,7 +24,33 @@ export const StudentService = {
             pixKey: s.pix_key,
             access_password: s.access_password,
             bookingEnabled: s.booking_enabled,
+            fcmToken: s.fcm_token,
         })) as Student[];
+    },
+
+    async getById(id: string) {
+        const { data, error } = await supabase
+            .from('students')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        return {
+            ...data,
+            totalClassesAttended: data.total_classes_attended,
+            lastAttendance: data.last_attendance,
+            paymentStatus: data.payment_status,
+            startDate: data.start_date,
+            lastGraduationDate: data.last_graduation_date,
+            isInstructor: data.is_instructor,
+            auth_user_id: data.auth_user_id,
+            pixKey: data.pix_key,
+            access_password: data.access_password,
+            bookingEnabled: data.booking_enabled,
+            fcmToken: data.fcm_token,
+        } as Student;
     },
 
     async create(student: Omit<Student, 'id' | 'created_at'>) {
@@ -50,6 +76,7 @@ export const StudentService = {
             last_graduation_date: student.lastGraduationDate || null,
             is_instructor: student.isInstructor || false,
             pix_key: student.pixKey || null,
+            fcm_token: student.fcmToken || null,
         };
 
         const { data, error } = await supabase
@@ -86,6 +113,7 @@ export const StudentService = {
         if (updates.isInstructor !== undefined) payload.is_instructor = updates.isInstructor;
         if (updates.pixKey !== undefined) payload.pix_key = updates.pixKey || null;
         if (updates.bookingEnabled !== undefined) payload.booking_enabled = updates.bookingEnabled;
+        if (updates.fcmToken !== undefined) payload.fcm_token = updates.fcmToken || null;
 
         // Handle other potentially empty string date/text fields
         if (payload.birthday === '') payload.birthday = null;
@@ -102,6 +130,7 @@ export const StudentService = {
         delete payload.isInstructor;
         delete payload.pixKey;
         delete payload.bookingEnabled;
+        delete payload.fcmToken;
 
         const { data, error } = await supabase
             .from('students')
@@ -331,7 +360,7 @@ export const StudentService = {
                 avatar: student.avatar,
                 trainings: trainingCounts[student.id] || 0
             }))
-            .sort((a, b) => b.trainings - a.trainings) || [];
+                .sort((a, b) => b.trainings - a.trainings) || [];
 
             return ranking;
         } catch (error) {
@@ -395,5 +424,35 @@ export const StudentService = {
         if (data?.error) throw new Error(data.error);
 
         return data;
+    },
+
+    async sendNotification(targetId: string, targetRole: 'STUDENT' | 'TRAINER', title: string, body: string, data?: any) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("Usuário não autenticado");
+
+        const { data: res, error } = await supabase.functions.invoke('send-notification', {
+            body: { targetId, targetRole, title, body, data },
+            headers: {
+                Authorization: `Bearer ${session.access_token}`
+            }
+        });
+
+        if (error) throw error;
+        return res;
+    },
+
+    async sendBroadcastNotification(title: string, body: string, data?: any) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("Usuário não autenticado");
+
+        const { data: res, error } = await supabase.functions.invoke('send-notification', {
+            body: { broadcast: true, title, body, data },
+            headers: {
+                Authorization: `Bearer ${session.access_token}`
+            }
+        });
+
+        if (error) throw error;
+        return res;
     }
 };

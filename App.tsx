@@ -28,10 +28,12 @@ import { ResetPasswordScreen } from './components/ResetPasswordScreen';
 import UserProfile from './components/UserProfile';
 import StudentDashboard from './components/StudentDashboard';
 import LoadingScreen from './components/LoadingScreen';
+import BroadcastNotificationModal from './components/BroadcastNotificationModal';
 
 import { Capacitor } from '@capacitor/core';
 import { supabase } from './services/supabase';
 import { LandingPage } from './components/LandingPage';
+import { requestNotificationPermission } from './services/firebase';
 
 const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void }> = ({ isDarkMode, setIsDarkMode }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -40,6 +42,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   const [selectedStudent, setSelectedStudent] = useState<Student | 'new' | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [studentFilter, setStudentFilter] = useState<'all' | 'graduation'>('all');
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const { user, loading, signOut, passwordRecoveryMode } = useAuth();
   const [loadingData, setLoadingData] = useState(true);
 
@@ -84,6 +87,41 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         CategoryService.getAll().then(cats => {
           if (cats.length > 0) setCategories(cats);
         });
+      });
+
+      // Firebase Push Notifications (FCM)
+      // Check permission, get token and update user's profile if it changed
+      import('./services/studentService').then(({ StudentService }) => {
+        const fetchAndStoreFCM = async () => {
+          try {
+            const { data, error } = await supabase.from('students').select('id, fcm_token').eq('auth_user_id', user.id).single();
+            if (data && !error) {
+              const token = await requestNotificationPermission();
+              if (token && token !== data.fcm_token) {
+                await StudentService.update(data.id, { fcmToken: token });
+                console.log("FCM Token updated successfully!");
+              }
+            }
+
+            // Listeners para notificações nativas (Capacitor)
+            if (Capacitor.isNativePlatform()) {
+              import('@capacitor/push-notifications').then(({ PushNotifications }) => {
+                PushNotifications.addListener('pushNotificationReceived', (notification) => {
+                  console.log('Push received: ', notification);
+                  // Opcional: Mostrar um alerta interno customizado aqui
+                });
+
+                PushNotifications.addListener('pushNotificationActionPerformed', (notification) => {
+                  console.log('Push action performed: ', notification);
+                  // Opcional: Navegar para alguma tela específica
+                });
+              });
+            }
+          } catch (e) {
+            console.error("Could not fetch user profile for FCM token", e);
+          }
+        };
+        fetchAndStoreFCM();
       });
     }
   }, [user?.id]);
@@ -272,8 +310,17 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
     <>
       {/* Mobile/Desktop Header */}
       <header className={`flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0 pb-4 ${isAndroid ? 'pt-16' : 'pt-[calc(1rem+env(safe-area-inset-top))]'}`}>
-        {/* Left: Empty Spacer for Center Alignment */}
-        <div className="w-10 h-10"></div>
+        {/* Left: Notification Center Button */}
+        <button
+          onClick={() => {
+            // Futuro Centro de Notificações
+            alert('Em breve: Central de Notificações recebidas dos alunos.');
+          }}
+          className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors active:scale-95"
+          title="Minhas Notificações"
+        >
+          <Icons.Bell className="w-5 h-5" />
+        </button>
 
         {/* Center: Logo */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
@@ -361,6 +408,17 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                   Financeiro
                 </button>
 
+                <button
+                  onClick={() => {
+                    setShowProfileMenu(false);
+                    setActiveTab('videos');
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition-colors flex items-center gap-2"
+                >
+                  <Icons.Video className="w-[14px] h-[14px]" />
+                  Biblioteca de Vídeos
+                </button>
+
                 {!isAndroid && !Capacitor.isNativePlatform() && (
                   <button
                     onClick={() => {
@@ -424,7 +482,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
       {showProfile && <UserProfile onClose={() => setShowProfile(false)} />}
 
       <div className="flex-1 flex overflow-hidden">
-        <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} isNativeApp={isAndroid || Capacitor.isNativePlatform()} className="hidden lg:flex" />
+        <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} onBroadcast={() => setShowBroadcastModal(true)} isNativeApp={isAndroid || Capacitor.isNativePlatform()} className="hidden lg:flex" />
 
         <main className={`flex-1 ${selectedStudent ? '' : 'lg:ml-64'} ${selectedStudent || activeTab === 'billing' || activeTab === 'subscription' ? 'h-full overflow-hidden' : 'p-4 lg:p-8 overflow-y-auto pb-4'}`}>
           <div className={`${selectedStudent || activeTab === 'billing' || activeTab === 'subscription' ? '' : 'max-w-7xl mx-auto'} flex flex-col h-full`}>
@@ -461,6 +519,10 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
           <Icons.Award size={24} strokeWidth={3} />
         </button>
       )}
+      <BroadcastNotificationModal
+        isOpen={showBroadcastModal}
+        onClose={() => setShowBroadcastModal(false)}
+      />
     </>
   );
 };

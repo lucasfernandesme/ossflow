@@ -1,5 +1,7 @@
 
 import { supabase } from './supabase';
+import { StudentService } from './studentService';
+import { ClassService } from './classService';
 
 export const BookingService = {
     async getMyBookings(studentId: string, date?: string) {

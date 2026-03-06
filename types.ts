@@ -53,6 +53,7 @@ export interface Student {
   pixKey?: string;
   access_password?: string;
   bookingEnabled?: boolean;
+  fcmToken?: string;
 }
 
 export interface TrainingClass {

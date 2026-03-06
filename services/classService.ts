@@ -27,6 +27,30 @@ export const ClassService = {
         })) as TrainingClass[];
     },
 
+    async getById(id: string) {
+        const { data, error } = await supabase
+            .from('classes')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        return {
+            id: data.id,
+            name: data.name,
+            startTime: data.start_time.slice(0, 5),
+            endTime: data.end_time.slice(0, 5),
+            instructor: data.instructor,
+            type: data.type,
+            targetCategory: data.target_category,
+            days: data.days,
+            isActive: data.is_active !== false,
+            deletedAt: data.deleted_at,
+            studentsCount: 0
+        } as TrainingClass;
+    },
+
     async create(trainingClass: Omit<TrainingClass, 'id' | 'studentsCount'>) {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("Usuário não autenticado");

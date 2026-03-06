@@ -6,17 +6,17 @@ import { useAuth } from '../contexts/AuthContext';
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  onBroadcast: () => void;
   isNativeApp?: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isNativeApp }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onBroadcast, isNativeApp }) => {
   const { signOut } = useAuth();
   const menuItems = [
     { id: 'dashboard', label: 'Home', icon: Icons.Dashboard },
     { id: 'attendance', label: 'Chamada', icon: Icons.Award },
     { id: 'ranking', label: 'Ranking', icon: Icons.Trophy },
     { id: 'students', label: 'Alunos', icon: Icons.Users },
-    { id: 'videos', label: 'Vídeos', icon: Icons.Video },
   ];
 
   return (
@@ -38,6 +38,14 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isNativeApp 
               <span className="font-medium">{item.label}</span>
             </button>
           ))}
+
+          <button
+            onClick={onBroadcast}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-emerald-400 hover:bg-emerald-900/20 hover:text-emerald-300"
+          >
+            <Icons.Send className="w-5 h-5" />
+            <span className="font-medium">Comunicado</span>
+          </button>
         </nav>
 
         <div className="p-6 border-t border-zinc-800">
@@ -72,6 +80,16 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isNativeApp 
             <span className="text-[8px] font-bold uppercase tracking-wider">{item.label}</span>
           </button>
         ))}
+
+        <button
+          onClick={onBroadcast}
+          className="flex flex-col items-center gap-1 min-w-[45px] text-emerald-500 active:scale-95"
+        >
+          <div className="p-1.5 rounded-lg bg-emerald-900/20">
+            <Icons.Send className="w-5 h-5" />
+          </div>
+          <span className="text-[8px] font-bold uppercase tracking-wider">Avisar</span>
+        </button>
       </div>
     </>
   );
