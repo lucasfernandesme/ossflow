@@ -82,7 +82,16 @@ const BroadcastNotificationModal: React.FC<BroadcastNotificationModalProps> = ({
             }, 2000);
         } catch (err: any) {
             console.error('Error sending notification:', err);
-            setError(err.message || 'Falha ao enviar notificação.');
+
+            // Tenta extrair a mensagem de erro detalhada da Edge Function
+            let errorMsg = 'Falha ao enviar notificação.';
+            if (err.context?.json?.error) {
+                errorMsg = err.context.json.error;
+            } else if (err.message) {
+                errorMsg = err.message;
+            }
+
+            setError(errorMsg);
         } finally {
             setSending(false);
         }
@@ -183,7 +192,9 @@ const BroadcastNotificationModal: React.FC<BroadcastNotificationModalProps> = ({
                                                                 <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center font-bold text-xs overflow-hidden">
                                                                     {student.avatar ? <img src={student.avatar} className="w-full h-full object-cover" /> : student.name.charAt(0)}
                                                                 </div>
-                                                                <span className="text-sm font-bold text-zinc-900 dark:text-white">{student.name}</span>
+                                                                <div className="flex-1">
+                                                                    <p className="text-sm font-bold text-zinc-900 dark:text-white">{student.name}</p>
+                                                                </div>
                                                             </button>
                                                         ))
                                                     ) : (

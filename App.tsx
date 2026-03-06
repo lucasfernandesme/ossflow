@@ -29,6 +29,7 @@ import UserProfile from './components/UserProfile';
 import StudentDashboard from './components/StudentDashboard';
 import LoadingScreen from './components/LoadingScreen';
 import BroadcastNotificationModal from './components/BroadcastNotificationModal';
+import NotificationsModal from './components/NotificationsModal';
 
 import { Capacitor } from '@capacitor/core';
 import { supabase } from './services/supabase';
@@ -45,6 +46,8 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const { user, loading, signOut, passwordRecoveryMode } = useAuth();
   const [loadingData, setLoadingData] = useState(true);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
 
   // Controle da Landing Page
   const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches || window.location.search.includes('mode=standalone');
@@ -94,6 +97,10 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
       import('./services/studentService').then(({ StudentService }) => {
         const fetchAndStoreFCM = async () => {
           try {
+            // Fetch unread notifications for trainer
+            const notifications = await StudentService.getNotifications(user.id, 'TRAINER');
+            setUnreadNotificationsCount(notifications.filter(n => !n.isRead).length);
+
             const { data, error } = await supabase.from('students').select('id, fcm_token').eq('auth_user_id', user.id).single();
             if (data && !error) {
               const token = await requestNotificationPermission();
@@ -311,16 +318,20 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
       {/* Mobile/Desktop Header */}
       <header className={`flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0 pb-4 ${isAndroid ? 'pt-16' : 'pt-[calc(1rem+env(safe-area-inset-top))]'}`}>
         {/* Left: Notification Center Button */}
-        <button
-          onClick={() => {
-            // Futuro Centro de Notificações
-            alert('Em breve: Central de Notificações recebidas dos alunos.');
-          }}
-          className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors active:scale-95"
-          title="Minhas Notificações"
-        >
-          <Icons.Bell className="w-5 h-5" />
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowNotificationsModal(true)}
+            className="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors active:scale-95 relative"
+            title="Minhas Notificações"
+          >
+            <Icons.Bell className="w-5 h-5" />
+            {unreadNotificationsCount > 0 && (
+              <span className="absolute top-1 right-1 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-[10px] font-black w-4.5 h-4.5 rounded-full border-2 border-white dark:border-zinc-950 flex items-center justify-center shadow-lg">
+                {unreadNotificationsCount}
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Center: Logo */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
@@ -523,6 +534,15 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         isOpen={showBroadcastModal}
         onClose={() => setShowBroadcastModal(false)}
       />
+
+      {showNotificationsModal && (
+        <NotificationsModal
+          userId={user.id}
+          userRole="TRAINER"
+          onClose={() => setShowNotificationsModal(false)}
+          onUnreadChange={(count) => setUnreadNotificationsCount(count)}
+        />
+      )}
     </>
   );
 };

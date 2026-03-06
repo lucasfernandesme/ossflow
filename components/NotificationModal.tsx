@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Icons } from '../constants';
-import { supabase } from '../services/supabase';
+import { StudentService } from '../services/studentService';
 
 interface NotificationModalProps {
     isOpen: boolean;
@@ -24,36 +24,38 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
             return;
         }
 
-        if (!fcmToken) {
-            setStatus({ type: 'error', message: 'Este aluno ainda não tem um dispositivo registrado para receber notificações.' });
-            return;
-        }
-
         setSending(true);
         setStatus(null);
 
         try {
-            // Chamada para a Edge Function do Supabase
-            const { data, error } = await supabase.functions.invoke('send-notification', {
-                body: {
-                    studentId,
-                    fcmToken,
-                    title,
-                    body
-                }
-            });
+            // Chamada para a Edge Function via StudentService
+            const res = await StudentService.sendNotification(
+                studentId,
+                'STUDENT',
+                title,
+                body
+            );
 
-            if (error) throw error;
-
+            console.log('Resposta da notificação:', res);
             setStatus({ type: 'success', message: 'Notificação enviada com sucesso!' });
+
+            // Fecha após 2 segundos em caso de sucesso
             setTimeout(() => {
                 onClose();
-                setStatus(null);
-                setBody('');
             }, 2000);
+
         } catch (error: any) {
             console.error('Erro ao enviar notificação:', error);
-            setStatus({ type: 'error', message: 'Erro ao enviar notificação. Verifique se o serviço está ativo.' });
+
+            // Tenta extrair a mensagem de erro detalhada da Edge Function
+            let errorMsg = 'Erro ao enviar notificação.';
+            if (error.context?.json?.error) {
+                errorMsg = error.context.json.error;
+            } else if (error.message) {
+                errorMsg = error.message;
+            }
+
+            setStatus({ type: 'error', message: errorMsg });
         } finally {
             setSending(false);
         }
@@ -113,8 +115,8 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                         onClick={handleSend}
                         disabled={sending || !body.trim()}
                         className={`w-full py-4 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all flex items-center justify-center gap-2 ${sending || !body.trim()
-                                ? 'bg-zinc-100 text-zinc-400 dark:bg-zinc-800 cursor-not-allowed shadow-none'
-                                : 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 active:scale-95'
+                            ? 'bg-zinc-100 text-zinc-400 dark:bg-zinc-800 cursor-not-allowed shadow-none'
+                            : 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 active:scale-95'
                             }`}
                     >
                         {sending ? (
@@ -130,11 +132,6 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                         )}
                     </button>
 
-                    {!fcmToken && (
-                        <p className="text-center text-red-400 text-[9px] font-bold uppercase tracking-tighter">
-                            Aviso: O aluno não possui dispositivo registrado.
-                        </p>
-                    )}
                 </div>
             </div>
         </div>

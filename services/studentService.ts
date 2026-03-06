@@ -1,6 +1,6 @@
 
 import { supabase } from './supabase';
-import { Student, StudentHistory } from '../types';
+import { Student, TrainingClass, StudentHistory, AppNotification } from '../types';
 
 export const StudentService = {
     async getAll() {
@@ -441,6 +441,7 @@ export const StudentService = {
         return res;
     },
 
+
     async sendBroadcastNotification(title: string, body: string, data?: any) {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error("Usuário não autenticado");
@@ -454,5 +455,36 @@ export const StudentService = {
 
         if (error) throw error;
         return res;
+    },
+
+    async getNotifications(userId: string, userRole: 'STUDENT' | 'TRAINER'): Promise<AppNotification[]> {
+        const { data, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('user_role', userRole)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return (data || []).map(n => ({
+            id: n.id,
+            userId: n.user_id,
+            userRole: n.user_role as any,
+            title: n.title,
+            body: n.body,
+            isRead: n.is_read,
+            data: n.data,
+            createdAt: n.created_at
+        }));
+    },
+
+    async markNotificationAsRead(notificationId: string): Promise<void> {
+        const { error } = await supabase
+            .from('notifications')
+            .update({ is_read: true })
+            .eq('id', notificationId);
+
+        if (error) throw error;
     }
 };

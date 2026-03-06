@@ -104,3 +104,13 @@ export interface StudentPayment {
   proofUrl?: string;
   proofDate?: string;
 }
+export interface AppNotification {
+  id: string;
+  userId: string;
+  userRole: 'STUDENT' | 'TRAINER';
+  title: string;
+  body: string;
+  isRead: boolean;
+  data: any;
+  createdAt: string;
+}

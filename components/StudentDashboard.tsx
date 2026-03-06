@@ -13,6 +13,7 @@ import { BookingService } from '../services/bookingService';
 import StudentProfileModal from './StudentProfileModal';
 import StudentFinanceModal from './StudentFinanceModal';
 import StudentEvolutionModal from './StudentEvolutionModal';
+import NotificationsModal from './NotificationsModal';
 import LoadingScreen from './LoadingScreen';
 
 const BeltGraphicLarge: React.FC<{ beltName: string, stripes: number }> = ({ beltName, stripes }) => {
@@ -69,6 +70,8 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
     const [showPixModal, setShowPixModal] = useState(false);
     const [showFinanceModal, setShowFinanceModal] = useState(false);
     const [showEvolutionModal, setShowEvolutionModal] = useState(false);
+    const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+    const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
     const [showMenu, setShowMenu] = useState(false);
     const [academyPix, setAcademyPix] = useState<string>('');
     const [bookingEnabled, setBookingEnabled] = useState<boolean>(true);
@@ -90,6 +93,9 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
                 if (studentRecords && studentRecords.length > 0) {
                     const s = studentRecords[0];
+                    // Fetch unread notifications count
+                    const notifications = await StudentService.getNotifications(s.id, 'STUDENT');
+                    setUnreadNotificationsCount(notifications.filter(n => !n.isRead).length);
                     const mappedStudent = {
                         ...s,
                         totalClassesAttended: s.total_classes_attended,
@@ -258,7 +264,20 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                 className="flex-none w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between sticky top-0 transition-all duration-300 shadow-sm pt-[calc(1rem+env(safe-area-inset-top))] pb-4"
             >
                 {/* Left: Empty Spacer for Center Alignment */}
-                <div className="w-10 h-10"></div>
+                {/* Left: Notifications */}
+                <div className="relative z-10">
+                    <button
+                        onClick={() => setShowNotificationsModal(true)}
+                        className="w-10 h-10 bg-zinc-50 dark:bg-zinc-800 rounded-xl flex items-center justify-center border border-zinc-100 dark:border-zinc-700 text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition-all shadow-sm relative"
+                    >
+                        <Icons.Bell className="w-5 h-5" />
+                        {unreadNotificationsCount > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 text-[10px] font-black w-5 h-5 rounded-full border-2 border-white dark:border-zinc-950 flex items-center justify-center shadow-lg">
+                                {unreadNotificationsCount}
+                            </span>
+                        )}
+                    </button>
+                </div>
 
                 {/* Centered Logo with Pulse */}
                 <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
@@ -532,6 +551,15 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showNotificationsModal && studentData && (
+                <NotificationsModal
+                    userId={studentData.id}
+                    userRole="STUDENT"
+                    onClose={() => setShowNotificationsModal(false)}
+                    onUnreadChange={(count) => setUnreadNotificationsCount(count)}
+                />
             )}
         </div>
     );
