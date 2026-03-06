@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Search, CheckCircle2, DollarSign, Clock, ChevronLeft, ChevronRight, Loader2, Plus, X, User, Home, Minus } from 'lucide-react';
+import { ArrowLeft, Search, CheckCircle2, DollarSign, Clock, ChevronLeft, ChevronRight, Loader2, Plus, X, User, Home, Minus, Trash2 } from 'lucide-react';
 import { FinanceService } from '../services/financeService';
 import { useAuth } from '../contexts/AuthContext';
 import { StudentPayment } from '../types';
@@ -389,6 +389,23 @@ const FinanceScreen: React.FC<FinanceScreenProps> = ({ onBack }) => {
         }
     };
 
+    const handleDeletePayment = async (paymentId: string) => {
+        if (!window.confirm("Essa operação não pode ser desfeita. Excluir o lançamento financeiro?")) {
+            return;
+        }
+
+        setSaving(paymentId);
+        try {
+            await FinanceService.deletePayment(paymentId);
+            await loadData();
+        } catch (error: any) {
+            console.error("Erro ao excluir título:", error);
+            alert(`Erro ao excluir título: ${error.message || 'Erro desconhecido'}`);
+        } finally {
+            setSaving(null);
+        }
+    };
+
     return (
         <div className="h-full w-full flex flex-col bg-zinc-50 dark:bg-zinc-950 animate-in fade-in duration-300 relative overflow-hidden">
             {/* Header */}
@@ -533,20 +550,33 @@ const FinanceScreen: React.FC<FinanceScreenProps> = ({ onBack }) => {
                                                         </div>
                                                     )}
 
-                                                    {((activeTab === 'revenues' || activeTab === 'expenses')) && (item.status === 'pending' || item.status === 'late') && (
+                                                    <div className="flex gap-2">
+                                                        {((activeTab === 'revenues' || activeTab === 'expenses')) && (item.status === 'pending' || item.status === 'late') && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleSettlePayment(item.id!);
+                                                                }}
+                                                                disabled={saving === item.id}
+                                                                className={`px-3 py-2 border-2 text-[10px] font-black rounded-lg transition-all flex items-center gap-2 ${item.type === 'expense'
+                                                                    ? 'border-red-500/30 text-red-500 hover:bg-red-500/10'
+                                                                    : 'border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10'}`}
+                                                            >
+                                                                {saving === item.id ? <Loader2 size={12} className="animate-spin" /> : 'Baixar Título'}
+                                                            </button>
+                                                        )}
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
-                                                                handleSettlePayment(item.id!);
+                                                                handleDeletePayment(item.id!);
                                                             }}
                                                             disabled={saving === item.id}
-                                                            className={`px-3 py-2 border-2 text-[10px] font-black rounded-lg transition-all flex items-center gap-2 ${item.type === 'expense'
-                                                                ? 'border-red-500/30 text-red-500 hover:bg-red-500/10'
-                                                                : 'border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10'}`}
+                                                            title="Excluir Lançamento"
+                                                            className="p-2 border-2 border-zinc-200 dark:border-zinc-800 text-zinc-400 hover:text-red-500 hover:border-red-500/30 hover:bg-red-500/10 rounded-lg transition-all flex items-center justify-center shrink-0"
                                                         >
-                                                            {saving === item.id ? <Loader2 size={12} className="animate-spin" /> : 'Baixar Título'}
+                                                            {saving === item.id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
                                                         </button>
-                                                    )}
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>

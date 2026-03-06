@@ -257,17 +257,8 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
             <header
                 className="flex-none w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between sticky top-0 transition-all duration-300 shadow-sm pt-[calc(1rem+env(safe-area-inset-top))] pb-4"
             >
-                {/* Theme Toggle (Left) */}
-                <button
-                    onClick={() => setIsDarkMode(!isDarkMode)}
-                    className="p-2 rounded-full hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-zinc-900 dark:text-white z-10"
-                >
-                    {isDarkMode ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
-                    ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
-                    )}
-                </button>
+                {/* Left: Empty Spacer for Center Alignment */}
+                <div className="w-10 h-10"></div>
 
                 {/* Centered Logo with Pulse */}
                 <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
@@ -315,6 +306,24 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                                 >
                                     <Icons.History width={16} height={16} /> Evolução
                                 </button>
+                                <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-2" />
+
+                                <button
+                                    onClick={() => {
+                                        setIsDarkMode(!isDarkMode);
+                                    }}
+                                    className="w-full px-4 py-3 text-left text-[11px] font-black uppercase text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors flex items-center justify-between"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {isDarkMode ? (
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+                                        ) : (
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
+                                        )}
+                                        {isDarkMode ? 'Tema Claro' : 'Tema Escuro'}
+                                    </div>
+                                </button>
+
                                 <div className="h-px bg-zinc-100 dark:bg-zinc-800 my-1 mx-2" />
                                 <button
                                     onClick={() => signOut()}
