@@ -124,7 +124,7 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 relative overflow-hidden transition-colors duration-300">
             {/* Header synchronized with PersonalApp */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-6 py-4 flex items-center justify-center safe-top">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 flex items-center justify-center">
                 <div className="flex items-center gap-2">
                     <img
                         src={isDarkMode ? "/logo11.png" : "/logo8.png"}
