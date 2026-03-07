@@ -529,7 +529,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
         </button>
         <div className="text-right">
           <p className="text-[8px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest leading-none">Gestão</p>
-          <h2 className="text-sm font-black italic tracking-tighter text-zinc-900 dark:text-white uppercase leading-none mt-1">BjjFlow</h2>
+          <h2 className="text-sm font-black italic tracking-tighter text-zinc-900 dark:text-white uppercase leading-none mt-1">BJJFLOW</h2>
         </div>
       </header>
 

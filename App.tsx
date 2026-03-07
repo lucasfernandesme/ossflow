@@ -277,10 +277,19 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   if (isBlocked) {
     return (
       <div className="flex flex-col h-screen overflow-hidden">
-        <header className={`flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-6 flex items-center justify-between sticky top-0 py-4 ${isAndroid ? 'pt-16' : 'pt-[calc(1rem+env(safe-area-inset-top))]'}`}>
+        <header className="fixed top-0 left-0 w-full flex items-center justify-between px-6 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 pt-[calc(1rem+env(safe-area-inset-top))] pb-4">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="BjjFlow Logo" className="h-9 w-auto object-contain drop-shadow-sm dark:bg-white dark:rounded-full dark:px-1" />
-            <span className="font-outfit font-black italic tracking-tighter text-lg bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
+            <img
+              src={isDarkMode ? "/logo11.png" : "/logo8.png"}
+              alt="BjjFlow Logo"
+              className="h-9 w-auto object-contain"
+              style={isDarkMode ? { filter: 'url(#remove-black-background)' } : {}}
+            />
+            <span
+              className="font-outfit font-black italic tracking-tighter text-lg bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase"
+            >
+              BJJFLOW
+            </span>
           </div>
           <button
             onClick={() => signOut()}
@@ -335,8 +344,13 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
         {/* Center: Logo */}
         <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-          <img src="/logo.png" alt="BjjFlow Logo" className="h-9 w-auto object-contain drop-shadow-sm dark:bg-white dark:rounded-full dark:px-1" />
-          <span className="font-outfit font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400">BjjFlow</span>
+          <img
+            src={isDarkMode ? "/logo11.png" : "/logo8.png"}
+            alt="BjjFlow Logo"
+            className="h-9 w-auto object-contain"
+            style={isDarkMode ? { filter: 'url(#remove-black-background)' } : {}}
+          />
+          <span className="font-outfit font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase">BJJFLOW</span>
         </div>
 
         {/* Right: Profile Button & Dropdown */}
@@ -490,7 +504,8 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         </div>
       </header>
 
-      {showProfile && <UserProfile onClose={() => setShowProfile(false)} />}
+      {showProfile && <UserProfile onClose={() => setShowProfile(false)} />
+      }
 
       <div className="flex-1 flex overflow-hidden">
         <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); if (tab !== 'students') setStudentFilter('all'); }} onBroadcast={() => setShowBroadcastModal(true)} isNativeApp={isAndroid || Capacitor.isNativePlatform()} className="hidden lg:flex" />
@@ -522,27 +537,31 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         </main>
       </div>
 
-      {activeTab === 'dashboard' && !selectedStudent && (
-        <button
-          onClick={() => setActiveTab('attendance')}
-          className="fixed bottom-24 right-6 w-14 h-14 bg-zinc-950 text-white rounded-full shadow-2xl flex lg:hidden items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 border border-zinc-800"
-        >
-          <Icons.Award size={24} strokeWidth={3} />
-        </button>
-      )}
+      {
+        activeTab === 'dashboard' && !selectedStudent && (
+          <button
+            onClick={() => setActiveTab('attendance')}
+            className="fixed bottom-24 right-6 w-14 h-14 bg-zinc-900 dark:bg-white text-white dark:text-zinc-950 rounded-full shadow-2xl flex lg:hidden items-center justify-center hover:scale-110 active:scale-95 transition-all z-40 border border-zinc-800"
+          >
+            <Icons.Award size={24} strokeWidth={3} />
+          </button>
+        )
+      }
       <BroadcastNotificationModal
         isOpen={showBroadcastModal}
         onClose={() => setShowBroadcastModal(false)}
       />
 
-      {showNotificationsModal && (
-        <NotificationsModal
-          userId={user.id}
-          userRole="TRAINER"
-          onClose={() => setShowNotificationsModal(false)}
-          onUnreadChange={(count) => setUnreadNotificationsCount(count)}
-        />
-      )}
+      {
+        showNotificationsModal && (
+          <NotificationsModal
+            userId={user.id}
+            userRole="TRAINER"
+            onClose={() => setShowNotificationsModal(false)}
+            onUnreadChange={(count) => setUnreadNotificationsCount(count)}
+          />
+        )
+      }
     </>
   );
 };

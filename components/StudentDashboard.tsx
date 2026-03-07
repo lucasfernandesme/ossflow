@@ -260,9 +260,7 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col">
             {/* Header */}
-            <header
-                className="flex-none w-full z-50 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between sticky top-0 transition-all duration-300 shadow-sm pt-[calc(1rem+env(safe-area-inset-top))] pb-4"
-            >
+            <header className="flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0 pb-4 pt-[calc(1rem+env(safe-area-inset-top))]">
                 {/* Left: Empty Spacer for Center Alignment */}
                 {/* Left: Notifications */}
                 <div className="relative z-10">
@@ -279,13 +277,18 @@ const StudentDashboard: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                     </button>
                 </div>
 
-                {/* Centered Logo with Pulse */}
                 <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-zinc-900 dark:bg-white rounded-full blur-xl opacity-20 animate-logo-pulse"></div>
-                        <img src="/logo.png" alt="BjjFlow Logo" className="w-10 h-10 rounded-full object-cover shadow-lg relative z-10 animate-logo-pulse dark:bg-white dark:border-2 dark:border-white dark:p-0.5" />
-                    </div>
-                    <span className="font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase">BjjFlow</span>
+                    <img
+                        src={isDarkMode ? "/logo11.png" : "/logo8.png"}
+                        alt="BjjFlow Logo"
+                        className="h-9 w-auto object-contain"
+                        style={isDarkMode ? { filter: 'url(#remove-black-background)' } : {}}
+                    />
+                    <span
+                        className="font-outfit font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase"
+                    >
+                        BJJFLOW
+                    </span>
                 </div>
 
                 <div className="relative z-10">

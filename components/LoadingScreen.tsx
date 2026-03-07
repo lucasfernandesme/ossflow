@@ -11,9 +11,9 @@ const LoadingScreen: React.FC = () => {
                 {/* Logo Image */}
                 <div className="relative animate-logo-pulse">
                     <img
-                        src="/logo.png"
-                        alt="BjjFlow Logo"
-                        className="w-32 h-32 rounded-full object-cover shadow-2xl border-4 border-white dark:border-zinc-900 dark:bg-white dark:p-1"
+                        src={document.documentElement.classList.contains('dark') ? "/logo_dark.png" : "/logo.png"}
+                        alt="BJJFLOW Logo"
+                        className="w-32 h-32 rounded-full object-cover shadow-2xl border-4 border-white dark:border-zinc-900"
                     />
                 </div>
             </div>

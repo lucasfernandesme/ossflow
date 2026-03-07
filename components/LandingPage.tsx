@@ -23,7 +23,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterReg
     }, []);
 
     return (
-        <div className={`min-h-screen font-sans selection:bg-emerald-500/30 ${isDarkMode ? 'dark bg-zinc-950 text-white' : 'bg-slate-50 text-zinc-900'} relative`}>
+        <div className={`min-h-screen font-sans selection:bg-emerald-500/30 ${isDarkMode ? 'dark bg-zinc-950 text-white' : 'bg-zinc-50 text-zinc-900'} relative`}>
             {/* Install Prompt iOS */}
             {showInstallPrompt && (
                 <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 p-4 shadow-2xl animate-in slide-in-from-bottom-full duration-500 rounded-t-3xl">
@@ -45,13 +45,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterReg
             )}
 
             {/* Header */}
-            <header className="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50">
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 transition-colors safe-top">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <img src="/logo.png" alt="BjjFlow Logo" className="h-24 md:h-28 w-auto object-contain drop-shadow-sm dark:bg-white dark:rounded-full dark:px-1" />
-                        <span className="font-outfit font-black italic tracking-tighter text-4xl md:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 -ml-1">
-                            BjjFlow
-                        </span>
+                    <div className="flex items-center gap-3">
+                        <img
+                            src={isDarkMode ? "/logo11.png" : "/logo8.png"}
+                            alt="Logo"
+                            className="h-8 w-auto object-contain"
+                            style={isDarkMode ? { filter: 'url(#remove-black-background)' } : {}}
+                        />
+                        <span className="font-extrabold text-xl text-zinc-900 dark:text-white tracking-tight uppercase">BJJFLOW</span>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -63,7 +66,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterReg
                         </button>
                     </div>
                 </div>
-            </header>
+            </nav>
 
             {/* Hero Section */}
             <section className="relative pt-40 pb-20 lg:pt-56 lg:pb-32 px-6">
@@ -76,7 +79,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterReg
                 />
 
                 {/* Background glow & overlay effects */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-50/50 to-slate-50 dark:via-zinc-950/80 dark:to-zinc-950 pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-white dark:from-zinc-950 via-white/80 dark:via-zinc-950/80 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-b from-white/50 dark:from-zinc-950/50 via-transparent to-white dark:to-zinc-950"></div>
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-500/20 dark:bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none" />
 
                 <div className="max-w-5xl mx-auto text-center relative z-10">

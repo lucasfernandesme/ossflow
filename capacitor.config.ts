@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.ossflow.app',
-  appName: 'BjjFlow',
+  appName: 'BJJFLOW',
   webDir: 'dist',
   plugins: {
     StatusBar: {

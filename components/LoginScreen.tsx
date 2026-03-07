@@ -122,26 +122,18 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 transition-colors relative">
-            {/* Header */}
-            <header className="absolute top-0 left-0 w-full flex items-center justify-between px-6 z-50 bg-slate-50/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-zinc-800/50 pt-[calc(1rem+env(safe-area-inset-top))] pb-4">
-                <button
-                    onClick={() => setIsDarkMode(!isDarkMode)}
-                    className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-zinc-900 dark:text-white"
-                >
-                    {isDarkMode ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>
-                    ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
-                    )}
-                </button>
-
-                <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-                    <img src="/logo.png" alt="BjjFlow Logo" className="h-10 w-auto object-contain drop-shadow-sm dark:bg-white dark:rounded-full dark:px-1" />
-                    <span className="font-outfit font-black italic tracking-tighter text-xl text-zinc-900 dark:text-white uppercase">BjjFlow</span>
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 relative overflow-hidden transition-colors duration-300">
+            {/* Header synchronized with PersonalApp */}
+            <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-6 py-4 flex items-center justify-center safe-top">
+                <div className="flex items-center gap-2">
+                    <img
+                        src={isDarkMode ? "/logo11.png" : "/logo8.png"}
+                        alt="BjjFlow Logo"
+                        className="h-8 w-auto object-contain"
+                        style={isDarkMode ? { filter: 'url(#remove-black-background)' } : {}}
+                    />
+                    <span className="font-outfit font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase">BJJFLOW</span>
                 </div>
-
-
             </header>
 
             <div className="w-full max-w-md space-y-8 mt-12">

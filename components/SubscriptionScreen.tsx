@@ -49,7 +49,7 @@ const SubscriptionScreen: React.FC<SubscriptionScreenProps> = ({ onBack, isBlock
                     <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                         <div className="space-y-2">
                             <span className="bg-white/20 text-white px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest backdrop-blur-sm border border-white/20">Plano Atual</span>
-                            <h3 className="text-4xl font-black tracking-tighter">BjjFlow Premium</h3>
+                            <h3 className="text-4xl font-black tracking-tighter">BJJFLOW Premium</h3>
                             <p className="text-emerald-100 font-medium text-sm">Acesso total a todas as ferramentas do sistema.</p>
                         </div>
                         <div className="text-center md:text-right">
@@ -61,7 +61,7 @@ const SubscriptionScreen: React.FC<SubscriptionScreenProps> = ({ onBack, isBlock
                                             <span className="font-black uppercase tracking-widest text-sm">Assinatura Ativa</span>
                                         </div>
                                     </div>
-                                    <p className="text-sm font-bold opacity-80 md:max-w-[200px] md:ml-auto">Obrigado por apoiar e utilizar o BjjFlow!</p>
+                                    <p className="text-sm font-bold opacity-80 md:max-w-[200px] md:ml-auto">Obrigado por apoiar e utilizar o BJJFLOW!</p>
 
                                     <button
                                         onClick={() => {
