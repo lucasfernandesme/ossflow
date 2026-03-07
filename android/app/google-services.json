@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1023007041770",
+    "project_id": "personalflow-2c5be",
+    "storage_bucket": "personalflow-2c5be.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1023007041770:android:073f890a86002ff0a5cf93",
+        "android_client_info": {
+          "package_name": "com.ossflow.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-i5vNjqC6KTJtt32kaIZ4DC9t5hzSLfo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
