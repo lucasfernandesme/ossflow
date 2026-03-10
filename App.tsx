@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import StudentList from './components/StudentList';
-import AIAssistant from './components/AIAssistant';
 import BeltList from './components/BeltList';
 import VideoSection from './components/VideoSection';
 import AttendanceSection from './components/AttendanceSection';
@@ -259,8 +258,6 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
         return <BeltList />;
       case 'videos':
         return <VideoSection />;
-      case 'assistant':
-        return <AIAssistant />;
       case 'billing':
         return (
           <FinanceScreen
@@ -456,17 +453,6 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                     Assinatura
                   </button>
                 )}
-
-                <button
-                  onClick={() => {
-                    setShowProfileMenu(false);
-                    setActiveTab('assistant');
-                  }}
-                  className="w-full text-left px-4 py-2.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition-colors flex items-center gap-2"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" /><path d="M12 16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2z" /><path d="M2 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2H4a2 2 0 0 1-2-2z" /><path d="M16 12a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" /><rect x="7" y="7" width="10" height="10" rx="3" /></svg>
-                  AI Assistant
-                </button>
 
                 <div className="border-t border-zinc-100 dark:border-zinc-800 mt-1 pt-1">
                   <button
