@@ -4,11 +4,12 @@ import { ChevronRight, Smartphone, Calendar, TrendingUp, Users, CheckCircle2, Sh
 interface LandingPageProps {
     onEnterApp: () => void;
     onEnterRegister: () => void;
+    onEnterStudentRegister: () => void;
     isDarkMode: boolean;
     setIsDarkMode: (v: boolean) => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterRegister, isDarkMode, setIsDarkMode }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterRegister, onEnterStudentRegister, isDarkMode, setIsDarkMode }) => {
     const [showInstallPrompt, setShowInstallPrompt] = React.useState(false);
 
     React.useEffect(() => {
@@ -102,15 +103,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterReg
                             onClick={onEnterRegister}
                             className="w-full sm:w-auto bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-zinc-900/20 dark:shadow-white/10 flex items-center justify-center gap-2"
                         >
-                            Testar 7 Dias Grátis
+                            Sou Professor: 7 Dias Grátis
                             <ChevronRight size={18} />
                         </button>
-                        <a
-                            href="#features"
-                            className="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-sm text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors flex items-center justify-center"
+                        <button
+                            onClick={onEnterStudentRegister}
+                            className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 active:scale-95 text-white px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest transition-all shadow-2xl shadow-emerald-500/20 flex items-center justify-center gap-2"
                         >
-                            Conhecer os Recursos
-                        </a>
+                            Sou Aluno e quero me cadastrar
+                            <ChevronRight size={18} />
+                        </button>
                     </div>
                 </div>
             </section>
@@ -237,12 +239,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterReg
                     <p className="text-zinc-500 dark:text-zinc-400 text-lg mb-10 max-w-2xl mx-auto">
                         Junte-se dezenas de Dojos que modernizaram sua operação. Pare de perder alunos por falta de engajamento e crie uma experiência premium.
                     </p>
-                    <button
-                        onClick={onEnterRegister}
-                        className="bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-5 rounded-full font-black text-sm uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-emerald-500/30 flex items-center justify-center gap-2 mx-auto"
-                    >
-                        Fazer Meu Cadastro Agora
-                    </button>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mx-auto">
+                        <button
+                            onClick={onEnterRegister}
+                            className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 px-10 py-5 rounded-full font-black text-sm uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-zinc-900/40 dark:shadow-white/20 flex items-center justify-center gap-2"
+                        >
+                            Cadastrar como Professor
+                        </button>
+                        <button
+                            onClick={onEnterStudentRegister}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-5 rounded-full font-black text-sm uppercase tracking-widest hover:scale-105 transition-all shadow-2xl shadow-emerald-500/30 flex items-center justify-center gap-2"
+                        >
+                            Sou Aluno: Me cadastrar
+                        </button>
+                    </div>
                 </div>
             </section>
 

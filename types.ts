@@ -54,6 +54,7 @@ export interface Student {
   access_password?: string;
   bookingEnabled?: boolean;
   fcmToken?: string;
+  gymCode?: string;
 }
 
 export interface TrainingClass {

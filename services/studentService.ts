@@ -25,6 +25,7 @@ export const StudentService = {
             access_password: s.access_password,
             bookingEnabled: s.booking_enabled,
             fcmToken: s.fcm_token,
+            gymCode: s.gym_code,
         })) as Student[];
     },
 
@@ -50,6 +51,7 @@ export const StudentService = {
             access_password: data.access_password,
             bookingEnabled: data.booking_enabled,
             fcmToken: data.fcm_token,
+            gymCode: data.gym_code,
         } as Student;
     },
 

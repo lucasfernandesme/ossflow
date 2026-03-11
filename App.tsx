@@ -47,11 +47,13 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   const [loadingData, setLoadingData] = useState(true);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [gymCode, setGymCode] = useState<string>('');
+  const [copied, setCopied] = useState(false);
 
   // Controle da Landing Page
   const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches || window.location.search.includes('mode=standalone');
   const [showLandingPage, setShowLandingPage] = useState(!isStandalonePWA);
-  const [authView, setAuthView] = useState<'login' | 'register'>('login');
+  const [authView, setAuthView] = useState<'login' | 'register' | 'register_student'>('login');
 
   const isAndroid = Capacitor.getPlatform() === 'android';
 
@@ -128,6 +130,20 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
           }
         };
         fetchAndStoreFCM();
+        const fetchGymCode = async () => {
+          const { data, error } = await supabase
+            .from('students')
+            .select('gym_code')
+            .eq('auth_user_id', user.id)
+            .single();
+          if (data && !error) {
+            setGymCode(data.gym_code);
+          }
+        };
+
+        if (user.user_metadata?.role !== 'student') {
+          fetchGymCode();
+        }
       });
     }
   }, [user?.id]);
@@ -151,6 +167,10 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
           }}
           onEnterRegister={() => {
             setAuthView('register');
+            setShowLandingPage(false);
+          }}
+          onEnterStudentRegister={() => {
+            setAuthView('register_student');
             setShowLandingPage(false);
           }}
           isDarkMode={isDarkMode}
@@ -386,6 +406,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                   </p>
                 </div>
 
+
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);
@@ -440,6 +461,27 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
                   <Icons.Video className="w-[14px] h-[14px]" />
                   Biblioteca de Vídeos
                 </button>
+
+                {gymCode && (
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(gymCode);
+                      setCopied(true);
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-950 dark:hover:text-white transition-colors flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Icons.Copy className="w-[14px] h-[14px]" />
+                      <span>Código: <span className="font-mono tracking-wider text-zinc-950 dark:text-white">{gymCode}</span></span>
+                    </div>
+                    {copied ? (
+                      <span className="text-[10px] text-emerald-500 font-black uppercase">Copiado!</span>
+                    ) : (
+                      <span className="text-[10px] opacity-0 group-hover:opacity-100 text-zinc-400 transition-opacity font-black uppercase">Copiar</span>
+                    )}
+                  </button>
+                )}
 
                 {!isAndroid && !Capacitor.isNativePlatform() && (
                   <button

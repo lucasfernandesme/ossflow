@@ -2,6 +2,8 @@
 import React from 'react';
 import { Icons } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../services/supabase';
+import { Student } from '../types';
 
 interface SidebarProps {
   activeTab: string;
@@ -11,7 +13,34 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onBroadcast, isNativeApp }) => {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const [gymCode, setGymCode] = React.useState<string>('');
+  const [copied, setCopied] = React.useState(false);
+
+  React.useEffect(() => {
+    const fetchGymCode = async () => {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('students')
+        .select('gym_code')
+        .eq('auth_user_id', user.id)
+        .single();
+      
+      if (data && !error) {
+        setGymCode(data.gym_code);
+      }
+    };
+    fetchGymCode();
+  }, [user]);
+
+  const copyToClipboard = () => {
+    if (gymCode) {
+      navigator.clipboard.writeText(gymCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   const menuItems = [
     { id: 'dashboard', label: 'Home', icon: Icons.Dashboard },
     { id: 'attendance', label: 'Chamada', icon: Icons.Award },
@@ -49,6 +78,25 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onBroadcast,
         </nav>
 
         <div className="p-6 border-t border-zinc-800">
+          {gymCode && (
+            <div className="mb-6 p-4 bg-zinc-900/50 rounded-2xl border border-zinc-800/50">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Meu Código</span>
+                {copied && <span className="text-[10px] font-bold text-emerald-500 animate-pulse">Copiado!</span>}
+              </div>
+              <div 
+                onClick={copyToClipboard}
+                className="flex items-center justify-between group cursor-pointer"
+              >
+                <code className="text-xl font-black tracking-[0.3em] font-mono text-white group-hover:text-emerald-400 transition-colors">
+                  {gymCode}
+                </code>
+                <Icons.Copy size={16} className="text-zinc-600 group-hover:text-white transition-colors" />
+              </div>
+              <p className="text-[10px] text-zinc-600 mt-2 font-medium">Passe este código para seus alunos se cadastrarem.</p>
+            </div>
+          )}
+
           {!isNativeApp && (
             <div className="mb-4">
               <button

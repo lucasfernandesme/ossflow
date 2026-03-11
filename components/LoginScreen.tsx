@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Mail, Lock, ChevronRight, UserPlus, ArrowLeft, Loader2, Phone } from 'lucide-react';
+import { Mail, Lock, ChevronRight, UserPlus, ArrowLeft, Loader2, Phone, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../services/supabase';
 
 // Helper for phone mask
@@ -14,7 +14,7 @@ const maskPhone = (value: string) => {
 };
 
 export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void, defaultView?: 'login' | 'register' }> = ({ isDarkMode, setIsDarkMode, defaultView = 'login' }) => {
-    const [view, setView] = useState<'login' | 'register' | 'forgot_password'>(defaultView);
+    const [view, setView] = useState<'login' | 'register' | 'register_student' | 'forgot_password'>(defaultView);
     const [loginMode, setLoginMode] = useState<'instructor' | 'student'>('instructor');
 
     const [name, setName] = useState('');
@@ -22,14 +22,22 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
     const [confirmEmail, setConfirmEmail] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [password, setPassword] = useState('');
+    const [professorCode, setProfessorCode] = useState('');
 
     // Gym Name field (since user asked for it to be mandatory in profile, good to capture early if possible, or leave for later)
     // PersonalApp didn't have it. I'll stick to name/email/phone for now to match PersonalApp style but keep it simple.
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const { signInWithPassword, signUp, signOut } = useAuth();
+
+    React.useEffect(() => {
+        if (view === 'register_student') {
+            // No longer fetching list
+        }
+    }, [view]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -76,20 +84,50 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                 return;
             }
 
+            let trainerId = null;
+
+            if (view === 'register_student') {
+                if (!professorCode || professorCode.length !== 6) {
+                    setError('O código do professor deve ter 6 dígitos.');
+                    return;
+                }
+
+                // Find instructor by code
+                const { data: instructor, error: searchError } = await supabase
+                    .from('students')
+                    .select('auth_user_id')
+                    .eq('gym_code', professorCode)
+                    .eq('is_instructor', true)
+                    .single();
+
+                if (searchError || !instructor) {
+                    setError('Código do professor inválido.');
+                    return;
+                }
+                trainerId = instructor.auth_user_id;
+            }
+
             // Using AuthContext signUp
-            // Note: AuthContext signUp signature in ossflow is ({ email, password, data })
-            // We pass metadata in 'data'
             await signUp({
                 email: email.toLowerCase(),
                 password,
                 data: {
                     name,
-                    phone: whatsapp, // Using phone/whatsapp
-                    role: 'instructor' // Default role for this app
+                    phone: whatsapp,
+                    role: view === 'register_student' ? 'student' : 'instructor',
+                    trainer_id: trainerId, // Pass trainer_id to link
+                    access_password: password // Save password for teacher to see
                 }
             });
 
-            alert('Cadastro realizado! Verifique seu email para confirmar.');
+            // If registering as student, we need to handle the record creation if auth trigger doesn't
+            // But usually there's a trigger. Let's assume we need to insert to link trainer_id (user_id)
+            if (view === 'register_student') {
+                alert('Cadastro realizado com sucesso! Você já está vinculado à academia e pode entrar no sistema agora.');
+            } else {
+                alert('Cadastro de professor realizado com sucesso! Você já pode entrar no sistema.');
+            }
+            
             setView('login');
 
         } catch (err: any) {
@@ -184,13 +222,20 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                                 <div className="relative group">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-zinc-600 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors" size={20} />
                                     <input
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         placeholder="Sua Senha"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
-                                        className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] pl-12 pr-6 py-5 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                        className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] pl-12 pr-12 py-5 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-zinc-600 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
                                 </div>
                             </div>
 
@@ -242,7 +287,7 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                         </button>
 
                         <div className="space-y-2">
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white transition-colors">Criar Nova Conta</h2>
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white transition-colors">Criar Conta Professor</h2>
                         </div>
 
                         <form onSubmit={handleRegister} className="space-y-4">
@@ -279,14 +324,23 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                                     required
                                     className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
                                 />
-                                <input
-                                    type="password"
-                                    placeholder="Crie sua Senha"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
-                                />
+                                <div className="relative group">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Crie sua Senha"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 pr-12 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-zinc-600 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
                             </div>
 
                             {error && <p className="text-center text-red-500 text-[10px] font-black uppercase tracking-widest animate-in shake transition-colors">{error}</p>}
@@ -296,7 +350,97 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                                 disabled={isLoading}
                                 className="w-full py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl transition-all active:scale-95 bg-zinc-900 dark:bg-white shadow-zinc-900/20 dark:shadow-white/10 text-white dark:text-zinc-900 disabled:opacity-50"
                             >
-                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <>Criar Conta <UserPlus size={18} /></>}
+                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <>Criar Conta Professor <UserPlus size={18} /></>}
+                            </button>
+                        </form>
+                    </div>
+                )}
+
+                {view === 'register_student' && (
+                    <div className="space-y-6 animate-in slide-in-from-right duration-300">
+                        <button onClick={() => setView('login')} className="flex items-center gap-2 text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-300 font-bold text-xs uppercase tracking-widest transition-colors">
+                            <ArrowLeft size={16} /> Voltar
+                        </button>
+
+                        <div className="space-y-2">
+                            <h2 className="text-2xl font-black text-slate-900 dark:text-white transition-colors">Cadastro de Aluno</h2>
+                        </div>
+
+                        <form onSubmit={handleRegister} className="space-y-4">
+                            <div className="space-y-3">
+                                <input
+                                    type="text"
+                                    placeholder="Nome Completo"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                />
+                                <input
+                                    type="email"
+                                    placeholder="Seu E-mail"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                />
+                                <input
+                                    type="email"
+                                    placeholder="Confirme seu E-mail"
+                                    value={confirmEmail}
+                                    onChange={(e) => setConfirmEmail(e.target.value)}
+                                    required
+                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                />
+                                <input
+                                    type="tel"
+                                    placeholder="Telefone (WhatsApp)"
+                                    value={whatsapp}
+                                    onChange={(e) => setWhatsapp(maskPhone(e.target.value))}
+                                    required
+                                    className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                />
+
+                                <div className="space-y-1">
+                                    <input
+                                        type="text"
+                                        placeholder="Código do Professor (6 dígitos)"
+                                        value={professorCode}
+                                        onChange={(e) => setProfessorCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6))}
+                                        required
+                                        maxLength={6}
+                                        className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 py-4 font-black text-center text-xl tracking-[0.3em] text-slate-900 dark:text-white focus:border-emerald-500 transition-all outline-none placeholder:text-[10px] placeholder:tracking-normal placeholder:font-bold placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                    />
+                                    <p className="text-center text-[9px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Peça o código ao seu professor</p>
+                                </div>
+
+                                <div className="relative group">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Crie sua Senha"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                        className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] px-6 pr-12 py-4 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-zinc-600 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {error && <p className="text-center text-red-500 text-[10px] font-black uppercase tracking-widest animate-in shake transition-colors">{error}</p>}
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl transition-all active:scale-95 bg-emerald-500 shadow-emerald-500/20 text-white disabled:opacity-50"
+                            >
+                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <>Finalizar Cadastro <UserPlus size={18} /></>}
                             </button>
                         </form>
                     </div>

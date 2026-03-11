@@ -238,13 +238,13 @@ const BroadcastNotificationModal: React.FC<BroadcastNotificationModalProps> = ({
                             <button
                                 onClick={handleSend}
                                 disabled={sending || !title || !body || (targetType === 'specific' && !selectedStudent)}
-                                className="w-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-4.5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-xl shadow-zinc-950/10 dark:shadow-white/5"
+                                className="w-full bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 py-6 rounded-2xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3 hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:active:scale-100 shadow-xl shadow-zinc-950/10 dark:shadow-white/5"
                             >
                                 {sending ? (
-                                    <span className="w-5 h-5 border-2 border-white dark:border-zinc-950 border-t-transparent rounded-full animate-spin"></span>
+                                    <span className="w-6 h-6 border-2 border-white dark:border-zinc-950 border-t-transparent rounded-full animate-spin"></span>
                                 ) : (
                                     <>
-                                        <Icons.Send className="w-4 h-4" />
+                                        <Icons.Send className="w-5 h-5" />
                                         Disparar Notificação
                                     </>
                                 )}

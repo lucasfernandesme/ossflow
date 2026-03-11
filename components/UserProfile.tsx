@@ -4,6 +4,7 @@ import { FinanceService } from '../services/financeService';
 import { StudentService } from '../services/studentService';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
+import { Eye, EyeOff, Shield, Lock, UserCircle, Save, LogOut, CheckCircle, Smartphone, CreditCard, Key } from 'lucide-react';
 
 interface UserProfileProps {
     onClose: () => void;
@@ -25,6 +26,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         if (user?.user_metadata) {
@@ -396,27 +399,45 @@ const UserProfile: React.FC<UserProfileProps> = ({ onClose }) => {
                             <div className="space-y-3">
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Nova Senha</label>
-                                    <input
-                                        type="password"
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        placeholder="Mínimo 6 caracteres"
-                                        className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50 text-zinc-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-zinc-950 dark:focus:ring-white transition-all outline-none placeholder:font-normal"
-                                    />
+                                    <div className="relative group">
+                                        <input
+                                            type={showNewPassword ? "text" : "password"}
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            placeholder="Mínimo 6 caracteres"
+                                            className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50 text-zinc-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-zinc-950 dark:focus:ring-white transition-all outline-none placeholder:font-normal pr-12"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                                        >
+                                            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
                                 {newPassword && (
                                     <div className="space-y-1 animate-in slide-in-from-top-2">
                                         <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider ml-1">Confirmar Senha</label>
-                                        <input
-                                            type="password"
-                                            value={confirmPassword}
-                                            onChange={(e) => setConfirmPassword(e.target.value)}
-                                            placeholder="Repita a nova senha"
-                                            className={`w-full px-4 py-3 rounded-xl border bg-zinc-50 dark:bg-zinc-950/50 text-zinc-900 dark:text-white font-bold text-sm focus:ring-2 transition-all outline-none ${confirmPassword && newPassword !== confirmPassword
-                                                ? 'border-red-300 ring-2 ring-red-100 focus:ring-red-500'
-                                                : 'border-zinc-200 dark:border-zinc-700 focus:ring-zinc-950 dark:focus:ring-white'
-                                                }`}
-                                        />
+                                        <div className="relative group">
+                                            <input
+                                                type={showConfirmPassword ? "text" : "password"}
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                placeholder="Repita a nova senha"
+                                                className={`w-full px-4 py-3 rounded-xl border bg-zinc-50 dark:bg-zinc-950/50 text-zinc-900 dark:text-white font-bold text-sm focus:ring-2 transition-all outline-none pr-12 ${confirmPassword && newPassword !== confirmPassword
+                                                    ? 'border-red-300 ring-2 ring-red-100 focus:ring-red-500'
+                                                    : 'border-zinc-200 dark:border-zinc-700 focus:ring-zinc-950 dark:focus:ring-white'
+                                                    }`}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                                            >
+                                                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
                             </div>
