@@ -1,6 +1,6 @@
 # 🚀 Guia de Publicação - Google Play Store
 
-Este guia contém o passo a passo para gerar a versão final do **OSSFLOW** e publicá-lo na Play Store.
+Este guia contém o passo a passo para gerar a versão final do **BJJFLOW** e publicá-lo na Play Store.
 
 ---
 
@@ -44,7 +44,7 @@ npx cap copy android
 
 1. **Conta de Desenvolvedor**: Acesse [play.google.com/console](https://play.google.com/console).
 2. **Criar App**: Clique em "Criar aplicativo" e preencha:
-   - Nome: OSSFLOW
+   - Nome: BJJFLOW
    - Idioma padrão: Português (Brasil)
    - Tipo: Aplicativo
    - Grátis ou Pago: Grátis
