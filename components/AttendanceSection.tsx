@@ -158,10 +158,11 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
       // a data selecionada for ESTRITAMENTE MENOR que a data em que foi deletada.
       // Ou seja, se deletei dia 28/02, a aula mostra no dia 21/02 (< 28)
       // mas esconde no dia 28/02 (28 não é menor que 28).
-      const deletedDateStr = new Date(cls.deletedAt).toISOString().split('T')[0];
+      const deletedDateStr = cls.deletedAt ? new Date(cls.deletedAt).toISOString().split('T')[0] : '';
+      if (!deletedDateStr) return true;
 
       return selectedDate < deletedDateStr;
-    }).sort((a, b) => a.startTime.localeCompare(b.startTime));
+    }).sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
   }, [classes, selectedDayOfWeek, selectedDate]);
 
   const filteredStudents = useMemo(() => {
@@ -171,12 +172,12 @@ const AttendanceSection: React.FC<AttendanceSectionProps> = ({ categories }) => 
 
     // Se o agendamento estiver ativo, filtra apenas quem agendou
     if (bookingEnabled) {
-      baseList = students.filter(s => bookedStudentIds.includes(s.id));
+      baseList = students.filter(s => (bookedStudentIds || []).includes(s.id));
     }
 
     return baseList.filter(s =>
-      s.categories.includes(selectedClass.targetCategory) &&
-      s.name.toLowerCase().includes(searchTerm.toLowerCase())
+      (s.categories || []).includes(selectedClass?.targetCategory || '') &&
+      (s.name || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [selectedClass, searchTerm, students, bookingEnabled, bookedStudentIds]);
 

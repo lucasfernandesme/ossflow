@@ -248,7 +248,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onGraduationClick, onHistoryClick
             </div>
           </div>
           <h3 className="text-zinc-500 dark:text-zinc-400 text-[10px] lg:text-sm font-bold uppercase tracking-wider">Aulas Hoje</h3>
-          <p className="text-lg lg:text-2xl font-black text-zinc-950 dark:text-white mt-1">{loading ? '...' : classes.filter(c => c.days.includes(new Date().getDay())).length}</p>
+          <p className="text-lg lg:text-2xl font-black text-zinc-950 dark:text-white mt-1">
+            {loading ? '...' : classes.filter(c => {
+              const isOnDay = c.days.includes(new Date().getDay());
+              if (!isOnDay) return false;
+              if (!c.deletedAt) return true;
+              const deletedDateStr = new Date(c.deletedAt).toISOString().split('T')[0];
+              const todayStr = getLocalDateString();
+              return todayStr < deletedDateStr;
+            }).length}
+          </p>
         </div>
 
         <div className="bg-white dark:bg-zinc-900 p-4 lg:p-6 rounded-2xl shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-all">

@@ -14,13 +14,13 @@ export const ClassService = {
 
         return data.map((c: any) => ({
             id: c.id,
-            name: c.name,
-            startTime: c.start_time.slice(0, 5), // 'HH:MM:SS' -> 'HH:MM'
-            endTime: c.end_time.slice(0, 5),
-            instructor: c.instructor,
-            type: c.type,
-            targetCategory: c.target_category,
-            days: c.days,
+            name: c.name || "Sem Nome",
+            startTime: (c.start_time || "00:00:00").slice(0, 5), // 'HH:MM:SS' -> 'HH:MM'
+            endTime: (c.end_time || "00:00:00").slice(0, 5),
+            instructor: c.instructor || "Sem Instrutor",
+            type: c.type || 'Gi',
+            targetCategory: c.target_category || "",
+            days: c.days || [],
             isActive: c.is_active !== false,
             deletedAt: c.deleted_at,
             studentsCount: 0 // TODO: Calcular contagem real de alunos matriculados
@@ -38,13 +38,13 @@ export const ClassService = {
 
         return {
             id: data.id,
-            name: data.name,
-            startTime: data.start_time.slice(0, 5),
-            endTime: data.end_time.slice(0, 5),
-            instructor: data.instructor,
-            type: data.type,
-            targetCategory: data.target_category,
-            days: data.days,
+            name: data.name || "Sem Nome",
+            startTime: (data.start_time || "00:00:00").slice(0, 5),
+            endTime: (data.end_time || "00:00:00").slice(0, 5),
+            instructor: data.instructor || "Sem Instrutor",
+            type: data.type || 'Gi',
+            targetCategory: data.target_category || "",
+            days: data.days || [],
             isActive: data.is_active !== false,
             deletedAt: data.deleted_at,
             studentsCount: 0
