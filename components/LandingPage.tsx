@@ -7,9 +7,10 @@ interface LandingPageProps {
     onEnterStudentRegister: () => void;
     isDarkMode: boolean;
     setIsDarkMode: (v: boolean) => void;
+    onPrivacyClick: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterRegister, onEnterStudentRegister, isDarkMode, setIsDarkMode }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterRegister, onEnterStudentRegister, isDarkMode, setIsDarkMode, onPrivacyClick }) => {
     const [showInstallPrompt, setShowInstallPrompt] = React.useState(false);
 
     React.useEffect(() => {
@@ -256,9 +257,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterReg
                 </div>
             </section>
 
-            {/* Very Footer */}
-            <footer className="py-8 border-t border-zinc-200/50 dark:border-zinc-800/50 text-center">
-                <p className="text-zinc-400 dark:text-zinc-600 text-xs font-bold uppercase tracking-widest">© {new Date().getFullYear()} BjjFlow. Todos os direitos reservados.</p>
+            <footer className="py-12 border-t border-zinc-200/50 dark:border-zinc-800/50 text-center space-y-4">
+                <button
+                    onClick={onPrivacyClick}
+                    className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest hover:text-emerald-500 transition-colors"
+                >
+                    Política de Privacidade
+                </button>
+                <p className="text-zinc-400 dark:text-zinc-600 text-[10px] font-bold uppercase tracking-widest">© {new Date().getFullYear()} BjjFlow. Todos os direitos reservados.</p>
             </footer>
         </div>
     );

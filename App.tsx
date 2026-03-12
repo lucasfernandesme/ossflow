@@ -34,6 +34,7 @@ import { Capacitor } from '@capacitor/core';
 import { supabase } from './services/supabase';
 import { LandingPage } from './components/LandingPage';
 import { requestNotificationPermission } from './services/firebase';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
 
 const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boolean) => void }> = ({ isDarkMode, setIsDarkMode }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -52,7 +53,9 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
 
   // Controle da Landing Page
   const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches || window.location.search.includes('mode=standalone');
-  const [showLandingPage, setShowLandingPage] = useState(!isStandalonePWA);
+  const initialShowLanding = !isStandalonePWA && !window.location.pathname.endsWith('/privacy');
+  const [showLandingPage, setShowLandingPage] = useState(initialShowLanding);
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(window.location.pathname.endsWith('/privacy'));
   const [authView, setAuthView] = useState<'login' | 'register' | 'register_student'>('login');
 
   const isAndroid = Capacitor.getPlatform() === 'android';
@@ -158,6 +161,19 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   }
 
   if (!user) {
+    if (showPrivacyPolicy) {
+      return (
+        <PrivacyPolicy
+          isDarkMode={isDarkMode}
+          onBack={() => {
+            setShowPrivacyPolicy(false);
+            window.history.pushState({}, '', '/');
+            setShowLandingPage(true);
+          }}
+        />
+      );
+    }
+
     if (showLandingPage && !isAndroid && !Capacitor.isNativePlatform()) {
       return (
         <LandingPage
@@ -172,6 +188,11 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
           onEnterStudentRegister={() => {
             setAuthView('register_student');
             setShowLandingPage(false);
+          }}
+          onPrivacyClick={() => {
+            setShowLandingPage(false);
+            setShowPrivacyPolicy(true);
+            window.history.pushState({}, '', '/privacy');
           }}
           isDarkMode={isDarkMode}
           setIsDarkMode={setIsDarkMode}
