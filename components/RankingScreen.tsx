@@ -115,40 +115,31 @@ const RankingScreen: React.FC<RankingScreenProps> = ({ onBack }) => {
                         {/* Top 3 Podium (Optional, looks better if we have at least 3) */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6 pt-8 md:pt-12">
                             {ranking.slice(0, 3).map((student, index) => {
-                                // Reordenar no desktop para visual de pódio (2, 1, 3) se tivermos 3
-                                const visualIndex = ranking.length >= 3
-                                    ? (index === 0 ? 1 : index === 1 ? 0 : 2)
-                                    : index;
-
-                                const actualStudent = ranking[visualIndex];
-
-                                if (!actualStudent) return null;
-
-                                const beltHex = getBeltColor(actualStudent.belt);
-                                const isFirst = visualIndex === 0;
+                                const beltHex = getBeltColor(student.belt);
+                                const isFirst = index === 0;
 
                                 return (
                                     <div
-                                        key={actualStudent.id}
-                                        className={`relative flex flex-col items-center bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-zinc-200/50 dark:border-zinc-800/50 shadow-xl transition-transform hover:-translate-y-2
-                                            ${isFirst ? 'md:-mt-10 border-yellow-400/30 dark:border-yellow-500/30 bg-gradient-to-b from-yellow-50/50 to-white dark:from-yellow-900/10 dark:to-zinc-900 ring-1 ring-yellow-400/20' : ''}
-                                            ${visualIndex === 1 && !isFirst ? 'border-zinc-300/50 dark:border-zinc-600/50 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-800/30 dark:to-zinc-900' : ''}
-                                            ${visualIndex === 2 ? 'border-amber-600/30 dark:border-amber-700/30 bg-gradient-to-b from-amber-50/50 to-white dark:from-amber-900/10 dark:to-zinc-900' : ''}
+                                        key={student.id}
+                                        className={`relative flex flex-col items-center bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-zinc-200/50 dark:border-zinc-800/50 shadow-xl transition-all hover:-translate-y-2
+                                            ${index === 0 ? 'md:order-2 md:-mt-10 border-yellow-400/30 dark:border-yellow-500/30 bg-gradient-to-b from-yellow-50/50 to-white dark:from-yellow-900/10 dark:to-zinc-900 ring-1 ring-yellow-400/20' : ''}
+                                            ${index === 1 ? 'md:order-1 border-zinc-300/50 dark:border-zinc-600/50 bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-800/30 dark:to-zinc-900' : ''}
+                                            ${index === 2 ? 'md:order-3 border-amber-600/30 dark:border-amber-700/30 bg-gradient-to-b from-amber-50/50 to-white dark:from-amber-900/10 dark:to-zinc-900' : ''}
                                         `}
                                     >
                                         <div className="absolute -top-6">
-                                            {getPrizeIcon(visualIndex)}
+                                            {getPrizeIcon(index)}
                                         </div>
 
                                         <div className={`relative mt-4 mb-4 rounded-full p-1 bg-gradient-to-br from-zinc-200 to-zinc-50 dark:from-zinc-800 dark:to-zinc-950 shadow-inner
                                             ${isFirst ? 'w-28 h-28 ring-4 ring-yellow-400/30 dark:ring-yellow-500/30' : 'w-20 h-20'}
                                         `}>
                                             <div className="w-full h-full rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                                                {actualStudent.avatar ? (
-                                                    <img src={actualStudent.avatar} alt={actualStudent.name} className="w-full h-full object-cover" />
+                                                {student.avatar ? (
+                                                    <img src={student.avatar} alt={student.name} className="w-full h-full object-cover" />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center font-black text-zinc-300 dark:text-zinc-600 text-2xl">
-                                                        {actualStudent.name.charAt(0)}
+                                                        {student.name.charAt(0)}
                                                     </div>
                                                 )}
                                             </div>
@@ -160,16 +151,16 @@ const RankingScreen: React.FC<RankingScreenProps> = ({ onBack }) => {
                                         </div>
 
                                         <h3 className={`font-black uppercase text-center truncate w-full ${isFirst ? 'text-xl' : 'text-lg'} text-zinc-950 dark:text-white`}>
-                                            {actualStudent.name}
+                                            {student.name}
                                         </h3>
                                         <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-wider mb-4">
-                                            {actualStudent.belt}
+                                            {student.belt}
                                         </p>
 
                                         <div className="flex items-center gap-2 mt-auto bg-zinc-100 dark:bg-zinc-950 px-4 py-2 rounded-xl">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className={isFirst ? "text-yellow-500" : "text-zinc-400"}><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
                                             <span className="font-black text-lg text-zinc-950 dark:text-white">
-                                                {actualStudent.trainings} <span className="text-[10px] text-zinc-500">TREINOS</span>
+                                                {student.trainings} <span className="text-[10px] text-zinc-500">TREINOS</span>
                                             </span>
                                         </div>
                                     </div>

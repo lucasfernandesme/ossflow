@@ -160,34 +160,46 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
     };
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-6 relative overflow-hidden transition-colors duration-300">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden transition-all duration-500 bg-zinc-950">
+            {/* Background Image with Overlay */}
+            <div className="absolute inset-0 z-0">
+                <img
+                    src="/login-bg-v12.png"
+                    alt="Background"
+                    className="w-full h-full object-cover object-center opacity-95 transition-opacity"
+                />
+                {/* Clear window for the belt/kimono area, darker at the top for legibility */}
+                <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/10 to-transparent"></div>
+                <div className="absolute inset-0 bg-zinc-950/20"></div>
+            </div>
+
             {/* Header synchronized with PersonalApp */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 flex items-center justify-center">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-transparent px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 flex items-center justify-center">
                 <div className="flex items-center gap-2">
                     <img
-                        src={isDarkMode ? "/logo11.png" : "/logo8.png"}
+                        src="/logo11.png"
                         alt="BjjFlow Logo"
                         className="h-8 w-auto object-contain"
-                        style={isDarkMode ? { filter: 'url(#remove-black-background)' } : {}}
                     />
-                    <span className="font-outfit font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase">BJJFLOW</span>
+                    <span className="font-outfit font-black italic tracking-tighter text-xl text-white uppercase drop-shadow-md">BJJFLOW</span>
                 </div>
             </header>
 
-            <div className="w-full max-w-md space-y-8 mt-12">
+            {/* Content wrapped in z-10 - Made more transparent and compact */}
+            <div className="w-full max-w-sm space-y-8 mt-12 z-10 relative">
                 <div className="text-center space-y-2">
-                    <p className="text-center text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 mt-2 animate-in slide-in-from-top-2">
+                    <p className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-white/90 mt-2 animate-in slide-in-from-top-2 drop-shadow-xl">
                         Gestão Inteligente de Jiu-Jitsu
                     </p>
                 </div>
 
                 {view === 'login' && (
-                    <div className="flex p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl mb-8 border border-zinc-200 dark:border-zinc-800 shadow-inner">
+                    <div className="flex p-1 bg-white/5 dark:bg-zinc-900/20 backdrop-blur-md rounded-2xl mb-8 border border-white/10 shadow-2xl">
                         <button
                             onClick={() => setLoginMode('instructor')}
                             className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${loginMode === 'instructor'
-                                ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-lg'
-                                : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'
+                                ? 'bg-white/90 dark:bg-white/90 text-zinc-950 shadow-lg'
+                                : 'text-zinc-300 hover:text-white'
                                 }`}
                         >
                             Professor
@@ -195,8 +207,8 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                         <button
                             onClick={() => setLoginMode('student')}
                             className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${loginMode === 'student'
-                                ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-lg'
-                                : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300'
+                                ? 'bg-white/90 dark:bg-white/90 text-zinc-950 shadow-lg'
+                                : 'text-zinc-300 hover:text-white'
                                 }`}
                         >
                             Aluno
@@ -209,30 +221,30 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                         <form onSubmit={handleLogin} className="space-y-4">
                             <div className="space-y-2">
                                 <div className="relative group">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-zinc-600 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors" size={20} />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors" size={20} />
                                     <input
                                         type="email"
                                         placeholder="Seu E-mail"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
-                                        className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] pl-12 pr-6 py-5 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                        className="w-full bg-white/5 dark:bg-zinc-900/20 backdrop-blur-md border-2 border-white/5 rounded-[24px] pl-12 pr-6 py-5 font-bold text-white focus:border-white/40 transition-all outline-none placeholder:text-white/30"
                                     />
                                 </div>
                                 <div className="relative group">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-zinc-600 group-focus-within:text-zinc-900 dark:group-focus-within:text-zinc-100 transition-colors" size={20} />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors" size={20} />
                                     <input
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Sua Senha"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
-                                        className="w-full bg-white dark:bg-zinc-800 border-2 border-slate-50 dark:border-zinc-800 rounded-[24px] pl-12 pr-12 py-5 font-bold text-slate-900 dark:text-white focus:border-zinc-900 dark:focus:border-white transition-all outline-none placeholder:text-slate-300 dark:placeholder:text-zinc-600"
+                                        className="w-full bg-white/5 dark:bg-zinc-900/20 backdrop-blur-md border-2 border-white/5 rounded-[24px] pl-12 pr-12 py-5 font-bold text-white focus:border-white/40 transition-all outline-none placeholder:text-white/30"
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-zinc-600 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
                                     >
                                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                     </button>
@@ -240,14 +252,14 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                             </div>
 
                             {error && (
-                                <p className="text-center text-red-500 text-[10px] font-black uppercase tracking-widest animate-in shake transition-colors">{error}</p>
+                                <p className="text-center text-red-500 text-[10px] font-black uppercase tracking-widest animate-in shake transition-colors drop-shadow-md">{error}</p>
                             )}
 
                             <div className="flex justify-end">
                                 <button
                                     type="button"
                                     onClick={() => setView('forgot_password')}
-                                    className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors uppercase tracking-wide"
+                                    className="text-[10px] font-bold text-white/50 hover:text-white transition-colors uppercase tracking-wide"
                                 >
                                     Esqueceu a senha?
                                 </button>
@@ -256,7 +268,7 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl transition-all active:scale-95 bg-zinc-900 dark:bg-white shadow-zinc-900/20 dark:shadow-white/10 text-white dark:text-zinc-900 disabled:opacity-50"
+                                className="w-full py-5 rounded-[24px] font-black uppercase text-xs tracking-[0.2em] flex items-center justify-center gap-3 shadow-2xl transition-all active:scale-95 bg-white/90 text-zinc-950 disabled:opacity-50"
                             >
                                 {isLoading ? (
                                     <Loader2 className="animate-spin" size={20} />

@@ -364,7 +364,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
   return (
     <>
       {/* Mobile/Desktop Header */}
-      <header className={`flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0 pb-4 ${isAndroid ? 'pt-16' : 'pt-[calc(1rem+env(safe-area-inset-top))]'}`}>
+      <header className={`flex-none w-full z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800/50 px-4 flex items-center justify-between sticky top-0 pb-4 pt-[calc(1rem+env(safe-area-inset-top))]`}>
         {/* Left: Notification Center Button */}
         <div className="relative">
           <button
