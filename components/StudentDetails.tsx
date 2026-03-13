@@ -5,7 +5,7 @@ import { supabase } from '../services/supabase';
 import { useBelt } from '../contexts/BeltContext';
 import { Icons } from '../constants';
 import { hasRedBar } from '../utils/beltUtils';
-import { getLocalDateString } from '../utils/dateUtils';
+import { getLocalDateString, formatAnyDateToPtBr } from '../utils/dateUtils';
 import BeltEditModal from './BeltEditModal';
 
 interface StudentDetailsProps {
@@ -657,7 +657,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                   type="date"
                   value={draftGraduationDate}
                   onChange={(e) => setDraftGraduationDate(e.target.value)}
-                  className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl px-6 py-4 text-zinc-950 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-700 w-full"
+                  className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl px-4 py-4 text-zinc-950 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-700 w-full"
                 />
               </div>
 
@@ -718,7 +718,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                   type="date"
                   value={draftGraduationDate}
                   onChange={(e) => setDraftGraduationDate(e.target.value)}
-                  className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl px-6 py-4 text-zinc-950 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-700"
+                  className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 rounded-2xl px-4 py-4 text-zinc-950 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-zinc-200 dark:focus:ring-zinc-700 w-full"
                 />
               </div>
 
@@ -814,7 +814,7 @@ const StudentDetails: React.FC<StudentDetailsProps> = ({ onBack, student, availa
                         <div className="flex-1 pb-4">
                           <div className="flex flex-col">
                             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
-                              {new Date(record.date).toLocaleDateString('pt-BR')}
+                              {formatAnyDateToPtBr(record.date)}
                             </span>
 
                             <div className="flex items-center gap-2">

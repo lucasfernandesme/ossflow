@@ -4,6 +4,7 @@ import { FinanceService } from '../services/financeService';
 import { StudentPayment, Student } from '../types';
 import { Icons } from '../constants';
 import { supabase } from '../services/supabase';
+import { formatAnyDateToPtBr } from '../utils/dateUtils';
 
 interface StudentFinanceModalProps {
     student: Student;
@@ -142,7 +143,7 @@ const StudentFinanceModal: React.FC<StudentFinanceModalProps> = ({ student, onCl
                                             </h4>
                                             {payment.paidAt && (
                                                 <p className="text-[8px] font-bold text-zinc-500 dark:text-zinc-500 uppercase tracking-tight">
-                                                    Pago em: {new Date(payment.paidAt).toLocaleDateString('pt-BR')}
+                                                    Pago em: {formatAnyDateToPtBr(payment.paidAt)}
                                                 </p>
                                             )}
                                         </div>

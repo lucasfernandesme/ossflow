@@ -5,6 +5,7 @@ import { Student, StudentHistory } from '../types';
 import { Icons } from '../constants';
 import { useBelt } from '../contexts/BeltContext';
 import { hasRedBar } from '../utils/beltUtils';
+import { formatAnyDateToPtBr } from '../utils/dateUtils';
 
 interface StudentEvolutionModalProps {
     student: Student;
@@ -225,7 +226,7 @@ const StudentEvolutionModal: React.FC<StudentEvolutionModalProps> = ({ student, 
                                             <div className="flex-1 pb-6">
                                                 <div className="flex flex-col">
                                                     <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.15em] mb-1.5 ml-0.5">
-                                                        {new Date(record.date).toLocaleDateString('pt-BR')}
+                                                        {formatAnyDateToPtBr(record.date)}
                                                     </span>
 
                                                     <div className="flex items-center gap-3">
