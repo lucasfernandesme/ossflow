@@ -64,6 +64,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
     if (!user) return { isBlocked: false, isInTrial: false, remainingTrialDays: 0 };
     if (user.user_metadata?.role === 'student') return { isBlocked: false, isInTrial: false, remainingTrialDays: 0 };
     if (user.user_metadata?.subscription_status === 'active') return { isBlocked: false, isInTrial: false, remainingTrialDays: 0 };
+    if (user.email === 'lucasfernandesm@gmail.com') return { isBlocked: false, isInTrial: false, remainingTrialDays: 0 };
 
     // Trial check
     const createdAt = new Date(user.created_at || Date.now());
