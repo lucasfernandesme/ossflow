@@ -164,7 +164,7 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
             {/* Background Image with Overlay */}
             <div className="absolute inset-0 z-0">
                 <img
-                    src="/login-bg-v12.png"
+                    src="/telalogin8.png"
                     alt="Background"
                     className="w-full h-full object-cover object-center opacity-95 transition-opacity"
                 />
@@ -175,19 +175,16 @@ export const LoginScreen: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boo
 
             {/* Content wrapped in z-10 - Made more transparent and compact */}
             <div className="w-full max-w-sm space-y-8 mt-12 z-10 relative">
-                <div className="flex flex-col items-center justify-center animate-in slide-in-from-top-6">
+                <div className="flex flex-col items-center justify-center animate-in slide-in-from-top-6 mb-2">
                     <img
-                        src="/logo8.png"
+                        src="/logo11_transparent.png"
                         alt="BjjFlow Logo"
-                        className="h-36 w-auto object-contain z-10"
+                        className="h-72 w-auto object-contain z-10 -mb-16"
                     />
-                    <span className="font-outfit font-black italic tracking-tighter text-5xl text-black uppercase drop-shadow-md -mt-6">
+                    <span className="font-montserrat font-black text-5xl text-white uppercase drop-shadow-md z-20">
                         BJJFLOW
                     </span>
-                </div>
-
-                <div className="text-center space-y-2">
-                    <p className="text-center text-[10px] font-black uppercase tracking-[0.2em] text-white/90 mt-2 animate-in slide-in-from-top-2 drop-shadow-xl">
+                    <p className="font-montserrat text-center text-xs font-bold uppercase tracking-[0.2em] text-white/90 animate-in slide-in-from-top-2 drop-shadow-xl z-20 mt-1">
                         Gestão Inteligente de Jiu-Jitsu
                     </p>
                 </div>
