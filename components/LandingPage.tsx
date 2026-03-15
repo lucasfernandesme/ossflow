@@ -56,7 +56,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp, onEnterReg
                             className="h-8 w-auto object-contain"
                             style={isDarkMode ? { filter: 'url(#remove-black-background)' } : {}}
                         />
-                        <span className="font-extrabold text-xl text-zinc-900 dark:text-white tracking-tight uppercase">BJJFLOW</span>
+                        <span className="font-montserrat font-black text-xl text-zinc-900 dark:text-white uppercase drop-shadow-md z-20">BJJFLOW</span>
                     </div>
 
                     <div className="flex items-center gap-4">

@@ -325,7 +325,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
               style={isDarkMode ? { filter: 'url(#remove-black-background)' } : {}}
             />
             <span
-              className="font-outfit font-black italic tracking-tighter text-lg bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase"
+              className="font-montserrat font-black text-lg text-zinc-900 dark:text-white uppercase drop-shadow-md z-20"
             >
               BJJFLOW
             </span>
@@ -389,7 +389,7 @@ const AuthenticatedApp: React.FC<{ isDarkMode: boolean, setIsDarkMode: (v: boole
             className="h-9 w-auto object-contain"
             style={isDarkMode ? { filter: 'url(#remove-black-background)' } : {}}
           />
-          <span className="font-outfit font-black italic tracking-tighter text-xl bg-clip-text text-transparent bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 uppercase">BJJFLOW</span>
+          <span className="font-montserrat font-black text-xl text-zinc-900 dark:text-white uppercase drop-shadow-md z-20">BJJFLOW</span>
         </div>
 
         {/* Right: Profile Button & Dropdown */}
