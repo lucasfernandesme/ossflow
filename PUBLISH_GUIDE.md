@@ -81,27 +81,34 @@ Ideal para controle de qualidade inicial rápido.
 4. **Finalizar**: Clique em **Avançar** (canto inferior direito) e depois em **Salvar alterações/Iniciar lançamento**.
 
 ### 2. Teste Fechado (Obrigatório)
-Necessário antes de solicitar acesso à produção.
-- **Regra de Ouro**: Você precisa de pelo menos **12 testadores** que aceitem participar por no mínimo **14 dias** seguidos.
-- **Passos**: Configurar faixa, selecionar países, adicionar testadores e enviar para revisão do Google.
+Necessário antes de solicitar acesso à produção para novas contas pessoais (criadas após Nov/2023).
+- **Regra de Ouro**: Você precisa de pelo menos **20 testadores** que aceitem participar por no mínimo **14 dias** seguidos após baixarem o app.
+- **Passos**:
+  1. Vá em **Teste Fechado**.
+  2. Escolha ou crie uma trilha (geralmente "Trilha fechada").
+  3. Em **Países/regiões**, selecione "Brasil" (ou onde desejar).
+  4. Na aba **Testadores**, crie uma lista de e-mails com os 20 endereços.
+  5. Vá em **Versões** e crie um novo lançamento com o arquivo `.aab`.
+  6. Envie para revisão do Google (pode levar alguns dias).
+  7. **Crucial**: Assim que aprovado pelo Google, os 20 testadores devem baixar o app e o contador de 14 dias começará.
 
 ---
 
 ## 🚀 Produção
 
-Após concluir o Teste Fechado (12 testadores / 14 dias), você pode solicitar o acesso de produção.
-1. Vá em **Produção** > **Cria e lançar uma versão**.
+Após concluir o Teste Fechado (20 testadores / 14 dias), você pode solicitar o acesso de produção.
+1. O Console mostrará um botão para "Solicitar acesso à produção".
 2. O Google fará a revisão final antes de disponibilizar para todos.
 
 ### 👥 Quem pode testar? (Listas de E-mails)
 Ao criar as listas no Play Console, você preenche com os e-mails dos seus testadores.
 - **Requisitos**: Qualquer pessoa com uma conta Google (@gmail.com ou Google Workspace) e um dispositivo Android.
-- **Você também pode**: Seu próprio e-mail pode (e deve) estar na lista. Você conta como um dos testadores para o prazo de 14 dias.
+- **Você também pode**: Seu próprio e-mail pode (e deve) estar na lista. Você conta como um dos testadores.
 - **Como funciona**:
-  1. Você adiciona o e-mail na lista do Play Console.
-     - ⚠️ **Dica Importante**: Após digitar o e-mail, você **precisa pressionar a tecla ENTER** ou usar uma vírgula. Se o e-mail não aparecer no campo "Endereços de e-mail adicionados" logo abaixo, o botão de salvar ficará desativado.
-  2. O Console gera um **link de convite** (Opt-in URL).
+  1. Você adiciona o e-mail na lista do Play Console (aperte **ENTER** após cada e-mail).
+  2. O Console gera um **link de convite** (Opt-in URL) na aba "Testadores".
   3. O testador clica no link, aceita participar e então o Google Play libera o download.
+  4. **Importante**: O Google rastreia se os testadores estão com o app instalado. Peça para não desinstalar.
 - **Privacidade**: Os testadores **não** conseguem ver os e-mails uns dos outros. Só você (o desenvolvedor) tem acesso à lista.
 - **Dica para os 14 dias**: Peça aos testadores para não desinstalar o app e abri-lo ocasionalmente durante as duas semanas.
 
@@ -120,7 +127,7 @@ Ao criar as listas no Play Console, você preenche com os e-mails dos seus testa
    - Abra esse link no seu celular Android (logado com o e-mail que você cadastrou).
    - Aceite o teste e clique no link para baixar no Google Play.
 2. **Coletar Feedback**: Use o app, veja se tudo funciona (login, cadastros, etc). Se precisar corrigir algo, basta gerar um novo `.aab` e subir como **Versão 2**.
-3. **Preparar o Teste Fechado**: Quando estiver confiante, comece a recrutar os **12 amigos/testadores**. Você precisará dos e-mails deles para a próxima fase.
+3. **Preparar o Teste Fechado**: Quando estiver confiante, comece a recrutar os **20 amigos/testadores**. Você precisará dos e-mails deles para a próxima fase.
 
 ---
 
